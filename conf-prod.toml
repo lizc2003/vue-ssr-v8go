@@ -1,0 +1,13 @@
+server_host="0.0.0.0:9090"
+env = "prod"
+assets_prefix = "/assets/"
+forward_headers = ["X-User-Agent"]
+alarm_secret = ""
+
+[Log]
+debug=false
+filenum=20
+filesize=256
+filename="run"
+level="DEBUG"
+dir="/data/vue-ssr-v8go/log"

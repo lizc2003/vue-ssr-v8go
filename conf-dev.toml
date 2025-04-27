@@ -1,0 +1,13 @@
+server_host="0.0.0.0:9090"
+env = "dev"
+assets_prefix = "/assets/"
+forward_headers = ["X-User-Agent"]
+alarm_secret = ""
+
+[Log]
+debug=true
+filenum=10
+filesize=256
+filename="run"
+level="DEBUG"
+dir="./log/{svr.name}"
