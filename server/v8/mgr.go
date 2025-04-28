@@ -17,6 +17,8 @@ const (
 	ProcessExitThreshold = 1000
 )
 
+var ErrorNoVm = errors.New("The VM instance cannot be acquired.")
+
 type VmConfig struct {
 	VmMaxCount int32
 	VmLifeTime int32 // seconds
@@ -66,13 +68,13 @@ func NewVmMgr(env string, callback SendEventCallback, vc *VmConfig, xc *XhrConfi
 	return ThisVmMgr, nil
 }
 
-func (this *VmMgr) Execute(code string, scriptName string) (error, bool) {
+func (this *VmMgr) Execute(code string, scriptName string) error {
 	w := this.acquireWorker()
 	if w == nil {
-		err := errors.New("v8 vm not available.")
-		tlog.Error(err)
-		alarm.SendAlert(err.Error())
-		return err, true
+		errMsg := ErrorNoVm.Error()
+		tlog.Error(errMsg)
+		alarm.SendAlert(errMsg)
+		return ErrorNoVm
 	}
 	err := w.Execute(code, scriptName)
 	this.releaseWorker(w)
@@ -80,7 +82,7 @@ func (this *VmMgr) Execute(code string, scriptName string) (error, bool) {
 	if err != nil {
 		tlog.Error(err)
 	}
-	return err, false
+	return err
 }
 
 func (this *VmMgr) acquireWorker() *Worker {

@@ -13,7 +13,7 @@ func TestXhr(t *testing.T) {
 		return
 	}
 
-	err, _ = vmMgr.Execute(testXhrJsContent, "test.js")
+	err = vmMgr.Execute(testXhrJsContent, "test.js")
 	if err != nil {
 		t.Fatalf("test fail: %v", err)
 		return
@@ -23,14 +23,14 @@ func TestXhr(t *testing.T) {
 }
 
 const testXhrJsContent = `
-function assert(condition, message) {
+var assert = function (condition, message) {
   if (!condition) {
     throw new Error(message || "Assertion failed");
   }
   console.log(message);
 }
 
-function runTestSuite(name, tests) {
+var runTestSuite = function (name, tests) {
   console.log('Running test suite: ' + name + '.\n');
   try {
     tests();
@@ -252,4 +252,29 @@ runTestSuite("Response Headers - Basic", function() {
 
   xhr.send();
 });
+
+// test objectDump
+console.log(dumpObject(globalThis));
+var obj = {
+  num: 42,
+  str: 'hello',
+  arr: [1, 2, { nested: 'value' }],
+  date: new Date(),
+  regex: /test/g,
+  err: new Error('oops'),
+  map: new Map([['key', 'value']]),
+  set: new Set([1, 2, 3]),
+  [Symbol('secret')]: 'symbolValue',
+  func: function test() {},
+  circular: null
+};
+obj.circular = obj;
+console.log(dumpObject(obj));
+
+console.log(dumpObject({}));
+console.log(dumpObject([]));
+console.log(dumpObject(null));
+console.log(dumpObject(undefined));
+console.log(dumpObject(42));
+console.log(dumpObject("text"));
 `

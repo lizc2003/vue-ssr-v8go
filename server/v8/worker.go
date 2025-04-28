@@ -49,7 +49,11 @@ func NewWorker(callback SendEventCallback) (*Worker, error) {
 	v8ctx := v8go.NewContext(isolate)
 	inspector.ContextCreated(v8ctx)
 
-	_, err := v8ctx.RunScript(gGlobalJs, "init.js")
+	script, err := isolate.CompileUnboundScript(gInitJs, gInitJsName, v8go.CompileOptions{CachedData: gInitJsCache})
+	if err != nil {
+		return nil, err
+	}
+	_, err = script.Run(v8ctx)
 	if err != nil {
 		return nil, err
 	}

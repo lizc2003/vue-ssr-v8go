@@ -218,7 +218,10 @@ globalThis.XMLHttpRequest = function() {
 			for (var key in responseHeaders) {
 				res += key + ': ' + responseHeaders[key] + '\r\n';
 			}
-			return res.slice(0, -2);
+			if (res.length >= 2) {
+				res = res.slice(0, -2);
+			}
+			return res;
 		},
 
 		getResponseHeader: function(key) {

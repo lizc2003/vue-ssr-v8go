@@ -31,3 +31,21 @@ func ToJsError(err error) error {
 	}
 	return err
 }
+
+func CompileJsScript(code string, scriptName string) (*v8go.CompilerCachedData, error) {
+	var ret *v8go.CompilerCachedData
+	iso := v8go.NewIsolate()
+	v8ctx := v8go.NewContext(iso)
+
+	script, err := iso.CompileUnboundScript(code, scriptName, v8go.CompileOptions{})
+	if err == nil {
+		_, err = script.Run(v8ctx)
+		if err == nil {
+			ret = script.CreateCodeCache()
+		}
+	}
+
+	v8ctx.Close()
+	iso.Dispose()
+	return ret, err
+}
