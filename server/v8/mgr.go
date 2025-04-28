@@ -12,8 +12,8 @@ import (
 const (
 	MaxXhrThreadCount    = 1000
 	MaxVmLiftTime        = 24 * 3600 // seconds
-	VmDeleteDelayTime    = 2 * time.Minute
-	VmRequireTimeout     = 8 // seconds
+	VmDeleteDelayTime    = 150 * time.Second
+	VmAcquireTimeout     = 8 // seconds
 	ProcessExitThreshold = 1000
 )
 
@@ -25,13 +25,13 @@ type VmConfig struct {
 }
 
 type VmMgr struct {
-	callback         SendEventCallback
-	xhrMgr           *xmlHttpRequestMgr
-	workers          chan *Worker
-	vmLifeTime       int64
-	vmMaxCount       int32
-	vmCurrentCount   int32
-	unavailableCount int32
+	callback           SendEventCallback
+	xhrMgr             *xmlHttpRequestMgr
+	workers            chan *Worker
+	vmLifeTime         int64
+	vmMaxCount         int32
+	vmCurrentCount     int32
+	vmAcquireFailCount int32
 }
 
 var ThisVmMgr *VmMgr
@@ -131,10 +131,10 @@ func (this *VmMgr) acquireWorker() *Worker {
 			time.Sleep(10 * time.Millisecond)
 		}
 
-		if time.Now().Unix()-reqStartTime > VmRequireTimeout {
-			errCount := atomic.AddInt32(&this.unavailableCount, 1)
-			if errCount >= ProcessExitThreshold {
-				errMsg := "v8 vm unavailable too many times, exit!"
+		if time.Now().Unix()-reqStartTime > VmAcquireTimeout {
+			failCount := atomic.AddInt32(&this.vmAcquireFailCount, 1)
+			if failCount >= ProcessExitThreshold {
+				errMsg := "Too many failures acquiring VM instance, exit!"
 				tlog.Error(errMsg)
 				alarm.SendAlert(errMsg)
 				os.Exit(1)
