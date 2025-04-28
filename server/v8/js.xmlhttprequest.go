@@ -17,8 +17,19 @@ package v8
 const xmlHttpRequestJsContent = `
 v8goJs.xhrMgr = function() {
 	var xhrMap = new Map();
+	var statusCodes = {
+		100:'Continue',101:'Switching Protocols',102:'Processing',200:'OK',201:'Created',202:'Accepted',203:'Non-Authoritative Information',204:'No Content',205:'Reset Content',206:'Partial Content',207:'Multi-Status',208:'Already Reported',226:'IM Used',300:'Multiple Choices',301:'Moved Permanently',302:'Found',303:'See Other',304:'Not Modified',305:'Use Proxy',306:'Switch Proxy',307:'Temporary Redirect',308:'Permanent Redirect',400:'Bad Request',401:'Unauthorized',402:'Payment Required',403:'Forbidden',404:'Not Found',405:'Method Not Allowed',406:'Not Acceptable',407:'Proxy Authentication Required',408:'Request Timeout',409:'Conflict',410:'Gone',411:'Length Required',412:'Precondition Failed',413:'Request Entity Too Large',414:'Request-URI Too Long',415:'Unsupported Media Type',416:'Requested Range Not Satisfiable',417:'Expectation Failed',418:'I\'m a teapot',419:'Authentication Timeout',420:'Method Failure',420:'Enhance Your Calm',422:'Unprocessable Entity',423:'Locked',424:'Failed Dependency',426:'Upgrade Required',428:'Precondition Required',429:'Too Many Requests',431:'Request Header Fields Too Large',440:'Login Timeout',444:'No Response',449:'Retry With',450:'Blocked by Windows Parental Controls',451:'Unavailable For Legal Reasons',451:'Redirect',494:'Request Header Too Large',495:'Cert Error',496:'No Cert',497:'HTTP to HTTPS',498:'Token expired/invalid',499:'Client Closed Request',499:'Token required',500:'Internal Server Error',501:'Not Implemented',502:'Bad Gateway',503:'Service Unavailable',504:'Gateway Timeout',505:'HTTP Version Not Supported',506:'Variant Also Negotiates',507:'Insufficient Storage',508:'Loop Detected',509:'Bandwidth Limit Exceeded',510:'Not Extended',511:'Network Authentication Required',520:'Origin Error',521:'Web server is down',522:'Connection timed out',523:'Proxy Declined Request',524:'A timeout occurred',598:'Network read timeout error',599:'Network connect timeout error'
+	};
 
 	return {
+		getStatusText: function (status) {
+			if (statusCodes.hasOwnProperty(status)) {
+				return statusCodes[status];
+			} else {
+				return status.toString();
+			}
+		},
+
 		addObject: function (xhrId, obj) {
 			xhrMap.set(xhrId, obj);
 		},
@@ -32,7 +43,6 @@ v8goJs.xhrMgr = function() {
 		
 			if (evt === "onfinish") {
 				xhrMap.delete(msg.xhr_id);
-				obj._onFinishCallback()
 			} else if (evt === "onerror") {
 				obj._onErrorCallback(msg.error)
 			} else if (evt === "onstart") {
@@ -49,7 +59,6 @@ v8goJs.xhrMgr = function() {
 globalThis.XMLHttpRequest = function() {
 	var method, url,
 		xhr, callEventListeners,
-		statusCodes,
 		listeners = ['readystatechange', 'abort', 'error', 'loadend', 'progress', 'load'],
 		privateListeners = {},
 		responseHeaders = {},
@@ -57,11 +66,7 @@ globalThis.XMLHttpRequest = function() {
 		hasSent = false,
 		thisXhrId = 0;
 
-	statusCodes = {
-		100:'Continue',101:'Switching Protocols',102:'Processing',200:'OK',201:'Created',202:'Accepted',203:'Non-Authoritative Information',204:'No Content',205:'Reset Content',206:'Partial Content',207:'Multi-Status',208:'Already Reported',226:'IM Used',300:'Multiple Choices',301:'Moved Permanently',302:'Found',303:'See Other',304:'Not Modified',305:'Use Proxy',306:'Switch Proxy',307:'Temporary Redirect',308:'Permanent Redirect',400:'Bad Request',401:'Unauthorized',402:'Payment Required',403:'Forbidden',404:'Not Found',405:'Method Not Allowed',406:'Not Acceptable',407:'Proxy Authentication Required',408:'Request Timeout',409:'Conflict',410:'Gone',411:'Length Required',412:'Precondition Failed',413:'Request Entity Too Large',414:'Request-URI Too Long',415:'Unsupported Media Type',416:'Requested Range Not Satisfiable',417:'Expectation Failed',418:'I\'m a teapot',419:'Authentication Timeout',420:'Method Failure',420:'Enhance Your Calm',422:'Unprocessable Entity',423:'Locked',424:'Failed Dependency',426:'Upgrade Required',428:'Precondition Required',429:'Too Many Requests',431:'Request Header Fields Too Large',440:'Login Timeout',444:'No Response',449:'Retry With',450:'Blocked by Windows Parental Controls',451:'Unavailable For Legal Reasons',451:'Redirect',494:'Request Header Too Large',495:'Cert Error',496:'No Cert',497:'HTTP to HTTPS',498:'Token expired/invalid',499:'Client Closed Request',499:'Token required',500:'Internal Server Error',501:'Not Implemented',502:'Bad Gateway',503:'Service Unavailable',504:'Gateway Timeout',505:'HTTP Version Not Supported',506:'Variant Also Negotiates',507:'Insufficient Storage',508:'Loop Detected',509:'Bandwidth Limit Exceeded',510:'Not Extended',511:'Network Authentication Required',520:'Origin Error',521:'Web server is down',522:'Connection timed out',523:'Proxy Declined Request',524:'A timeout occurred',598:'Network read timeout error',599:'Network connect timeout error'
-	};
-
-	callEventListeners = function(listeners) {
+	callEventListeners = function(listeners, evt) {
 		var i;
 		var listenerFound = false;
 		if (typeof listeners === 'string') {
@@ -70,13 +75,13 @@ globalThis.XMLHttpRequest = function() {
 		listeners.forEach(function(e) {
 			if (typeof xhr['on' + e] === 'function') {
 				listenerFound = true;
-				xhr['on' + e].call(xhr);
+				xhr['on' + e].call(xhr, evt);
 			}
 			if (privateListeners.hasOwnProperty(e)) {
 				for (i = 0; i < privateListeners[e].length; i++) {
 					if (privateListeners[e][i] !== undefined) {
 						listenerFound = true;
-						privateListeners[e][i].call(xhr);
+						privateListeners[e][i].call(xhr, evt);
 					}
 				}
 			}
@@ -101,14 +106,15 @@ globalThis.XMLHttpRequest = function() {
 		open: function(_method, _url, _async, _user, _password) {
 			var async = (typeof _async !== "boolean" ? true : _async)
 			if (_method === undefined || _url === undefined) {
-				throw TypeError('Failed to execute \'open\' on \'XMLHttpRequest\': 2 arguments required, but only ' + +(_method || _url) + ' present.');
+				throw TypeError('Failed to execute \'open\' on \'XMLHttpRequest\': 2 arguments required, but only '+(_method || _url)+' present.');
 			}
 			if (!async) {
-				throw TypeError('Failed to execute \'open\' on \'XMLHttpRequest\': Synchronous requests are not supported.');
+				throw TypeError('Failed to execute \'open\' on \'XMLHttpRequest\': Synchronous request is not supported.');
 			}
 			method = _method;
 			url = _url;
 			xhr.readyState = xhr.OPENED;
+			callEventListeners('readystatechange');
 		},
 
 		send: function(post) {
@@ -185,7 +191,7 @@ globalThis.XMLHttpRequest = function() {
 
 		setRequestHeader: function(header, value) {
 			if (header === undefined || value === undefined) {
-				console.error(' Failed to execute \'setRequestHeader\' on \'XMLHttpRequest\': 2 arguments required, but only ' + +(headers || value) + ' present.');
+				console.error(' Failed to execute \'setRequestHeader\' on \'XMLHttpRequest\': 2 arguments required, but only ' + (headers || value) + ' present.');
 				return
 			}
 			headers[header] = value;
@@ -230,17 +236,25 @@ globalThis.XMLHttpRequest = function() {
 
 		_onHeaderCallback: function(status, headers) {
 			if (thisXhrId > 0) {
-				xhr.status = status;
-				if (statusCodes.hasOwnProperty(xhr.status)) {
-					xhr.statusText = statusCodes[xhr.status];
-				} else {
-					xhr.statusText = xhr.status.toString();
+				var total = 0;
+				var contentLength = parseInt(headers['Content-Length']);
+				if (contentLength > 0) {
+					total = contentLength;
 				}
+
+				xhr.status = status;
+				xhr.statusText = v8goJs.xhrMgr.getStatusText(status);
 				responseHeaders = headers;
 				xhr.readyState = xhr.HEADERS_RECEIVED;
 				callEventListeners('readystatechange');
 				xhr.readyState = xhr.LOADING;
-				callEventListeners(['readystatechange', 'progress']);
+				callEventListeners('readystatechange');
+				
+				if (total > 0) {
+					callEventListeners('progress', {lengthComputable:true, loaded:0, total:total});
+				} else {
+					callEventListeners('progress', {lengthComputable:false, loaded:0, total:0});
+				}
 			}
 		},
 
@@ -262,10 +276,6 @@ globalThis.XMLHttpRequest = function() {
 				xhr.response = response;
 				callEventListeners(['readystatechange', 'load', 'loadend']);
 			}
-		},
-
-		_onFinishCallback: function() {
-			thisXhrId = 0;
 		}
 	};
 

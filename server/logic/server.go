@@ -44,26 +44,8 @@ func RunServer(c *Config) {
 		ForwardHeaders: getForwardHeaders(c.ForwardHeaders),
 	}
 
-	test()
-
 	fmt.Printf("At %s, the server was started on port %s.\n",
 		util.FormatTime(time.Now()),
 		strings.Split(c.Host, ":")[1])
 	util.GraceHttpServe(c.Host, GetHttpHandler(c.Env, c.AssetsPrefix))
-}
-
-func test() {
-	err, _ := ThisServer.VmMgr.Execute(`
-function reqListener() {
-	console.log(this.responseText);
-}
-
-const req = new XMLHttpRequest();
-req.addEventListener("load", reqListener);
-req.open("GET", "https://www.baidu.com/");
-req.send();
-
-console.log(JSON.stringify(globalThis))
-`, "test.js")
-	fmt.Println(err)
 }

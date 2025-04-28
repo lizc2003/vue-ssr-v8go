@@ -1,7 +1,7 @@
 package defs
 
 const (
-	App      = "vuessr"
+	App      = "vssr"
 	AppShort = "vs"
 
 	EnvProd = "prod"
