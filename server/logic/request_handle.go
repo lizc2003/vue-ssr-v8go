@@ -72,6 +72,9 @@ func ssrRender(url string, ssrHeaders map[string]string) (RenderResult, error) {
 	if err == nil {
 		select {
 		case <-req.end:
+			if !req.bOK {
+				err = errors.New(req.result.Html)
+			}
 		case <-time.After(RenderTimeout):
 			err = ErrorRenderTimeout
 		}
