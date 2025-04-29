@@ -7,7 +7,7 @@ import (
 )
 
 func TestXhr(t *testing.T) {
-	vmMgr, err := v8.NewVmMgr("dev", nil, &v8.VmConfig{}, &v8.XhrConfig{})
+	vmMgr, err := v8.NewVmMgr("dev", "", nil, &v8.VmConfig{}, &v8.XhrConfig{})
 	if err != nil {
 		t.Fatalf("create vm mgr err: %v", err)
 		return

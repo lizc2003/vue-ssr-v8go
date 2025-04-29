@@ -4,7 +4,9 @@ import "C"
 import (
 	"encoding/json"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/tlog"
+	"github.com/lizc2003/vue-ssr-v8go/server/common/util"
 	"github.com/tommie/v8go"
+	"os"
 	"strings"
 	"sync"
 )
@@ -56,6 +58,26 @@ func NewWorker(callback SendEventCallback) (*Worker, error) {
 	_, err = script.Run(v8ctx)
 	if err != nil {
 		return nil, err
+	}
+
+	if gServerJsCache != nil {
+		script, err = isolate.CompileUnboundScript(gServerJs, gServerJsName, v8go.CompileOptions{CachedData: gServerJsCache})
+		if err != nil {
+			return nil, err
+		}
+		_, err = script.Run(v8ctx)
+		if err != nil {
+			return nil, err
+		}
+	} else if gServerFileName != "" {
+		content, err := os.ReadFile(gServerFileName)
+		if err != nil {
+			return nil, err
+		}
+		_, err = v8ctx.RunScript(util.UnsafeBytes2Str(content), gServerJsName)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	w := &Worker{

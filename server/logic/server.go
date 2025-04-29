@@ -11,19 +11,20 @@ import (
 )
 
 type Config struct {
-	Host           string       `toml:"server_host"`
-	Env            string       `toml:"env"`
-	Log            tlog.Config  `toml:"Log"`
-	AlarmSecret    string       `toml:"alarm_secret"`
-	AssetsPrefix   string       `toml:"assets_prefix"`
-	ForwardHeaders []string     `toml:"forward_headers"`
-	VmConfig       v8.VmConfig  `toml:"Vm"`
-	XhrConfig      v8.XhrConfig `toml:"Xhr"`
+	Host         string       `toml:"server_host"`
+	Env          string       `toml:"env"`
+	Log          tlog.Config  `toml:"Log"`
+	AlarmSecret  string       `toml:"alarm_secret"`
+	AssetsPrefix string       `toml:"assets_prefix"`
+	SsrHeaders   []string     `toml:"ssr_headers"`
+	VmConfig     v8.VmConfig  `toml:"Vm"`
+	XhrConfig    v8.XhrConfig `toml:"Xhr"`
 }
 
 type Server struct {
-	VmMgr          *v8.VmMgr
-	ForwardHeaders []string
+	RenderMgr  *RenderMgr
+	VmMgr      *v8.VmMgr
+	SsrHeaders []string
 }
 
 var ThisServer *Server
@@ -33,19 +34,30 @@ func RunServer(c *Config) {
 		alarm.NewDefaultRobotFeiShu(c.AlarmSecret)
 	}
 
-	vmMgr, err := v8.NewVmMgr(c.Env, SendEventCallback, &c.VmConfig, &c.XhrConfig)
+	distPath := getDistPath()
+	publicDir := distPath + ClientPath
+	serverDir := distPath + ServerPath
+
+	vmMgr, err := v8.NewVmMgr(c.Env, serverDir, SendEventCallback, &c.VmConfig, &c.XhrConfig)
+	if err != nil {
+		tlog.Fatal(err.Error())
+		return
+	}
+
+	renderMgr, err := NewRenderMgr(c.Env, publicDir)
 	if err != nil {
 		tlog.Fatal(err.Error())
 		return
 	}
 
 	ThisServer = &Server{
-		VmMgr:          vmMgr,
-		ForwardHeaders: getForwardHeaders(c.ForwardHeaders),
+		RenderMgr:  renderMgr,
+		VmMgr:      vmMgr,
+		SsrHeaders: getSsrHeaders(c.SsrHeaders),
 	}
 
 	fmt.Printf("At %s, the server was started on port %s.\n",
 		util.FormatTime(time.Now()),
 		strings.Split(c.Host, ":")[1])
-	util.GraceHttpServe(c.Host, GetHttpHandler(c.Env, c.AssetsPrefix))
+	util.GraceHttpServe(c.Host, GetHttpHandler(c.Env, publicDir, c.AssetsPrefix))
 }

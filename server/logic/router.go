@@ -7,11 +7,11 @@ import (
 	"github.com/lizc2003/vue-ssr-v8go/server/common/util"
 )
 
-func GetHttpHandler(env string, assetsPrefix string) http.Handler {
+func GetHttpHandler(env string, publicDir string, assetsPrefix string) http.Handler {
 	e := util.NewGinEngine(env)
 
-	publicDir := getDistPath() + clientPath
 	e.StaticFile("/robots.txt", publicDir+"/robots.txt")
+	e.StaticFile("/favicon.svg", publicDir+"/favicon.svg")
 	e.StaticFile("/favicon.ico", publicDir+"/favicon.ico")
 	e.NoRoute(HandleSsrRequest)
 

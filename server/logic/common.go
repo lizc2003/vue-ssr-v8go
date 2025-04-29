@@ -3,23 +3,27 @@ package logic
 import (
 	"os"
 	"path/filepath"
+	"time"
 )
 
 const (
-	distPath   = "/dist/"
-	clientPath = "client"
-	serverPath = "server"
+	DistPath   = "/dist/"
+	ClientPath = "client"
+	ServerPath = "server"
+	IndexName  = "index.html"
+
+	RenderTimeout = 30 * time.Second
 )
 
 func getDistPath() string {
 	basepath, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
-		return "." + distPath
+		return "." + DistPath
 	}
-	return basepath + distPath
+	return basepath + DistPath
 }
 
-func getForwardHeaders(headers []string) []string {
+func getSsrHeaders(headers []string) []string {
 	needHeaders := []string{
 		"Cookie",
 		"Authorization",

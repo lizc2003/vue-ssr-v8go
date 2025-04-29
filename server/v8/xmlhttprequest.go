@@ -72,7 +72,7 @@ func (this *xmlHttpRequestMgr) open(req *xhrCmd) int {
 
 	beginTime := time.Now()
 	this.queue <- req
-	tlog.Infof("xhr request %d: %s, wait time: %v", req.XhrId, req.Url, time.Since(beginTime))
+	tlog.Infof("xhr %d: %s, wait time: %v", req.XhrId, req.Url, time.Since(beginTime))
 	return req.XhrId
 }
 
@@ -121,7 +121,7 @@ func performXhr(req *xhrCmd, client *http.Client, c *XhrConfig) {
 	//request.Host = this.internalApiHost
 
 	for k, v := range req.Headers {
-		if k == "SSR-Ctx" {
+		if k == "SSR-Headers" {
 			if v != "" {
 				var headers map[string]string
 				err := json.Unmarshal([]byte(v), &headers)
@@ -129,7 +129,7 @@ func performXhr(req *xhrCmd, client *http.Client, c *XhrConfig) {
 					for kk, vv := range headers {
 						if vv != "" {
 							kk = strings.ReplaceAll(kk, "_", "-")
-							tlog.Debugf("xhr header %s: %s", kk, vv)
+							tlog.Debugf("ssr header %s: %s", kk, vv)
 							request.Header.Set(kk, vv)
 						}
 					}

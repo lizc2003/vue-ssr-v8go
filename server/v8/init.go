@@ -2,19 +2,29 @@ package v8
 
 import (
 	"github.com/lizc2003/vue-ssr-v8go/server/common/defs"
+	"github.com/lizc2003/vue-ssr-v8go/server/common/util"
 	"github.com/tommie/v8go"
+	"os"
 	"strings"
 )
 
 var gInitJs string
 var gInitJsCache *v8go.CompilerCachedData
+var gServerFileName string
+var gServerJs string
+var gServerJsCache *v8go.CompilerCachedData
 
-const gInitJsName = "init.js"
+const (
+	gInitJsName   = "init.js"
+	gServerJsName = "server.js"
+)
 
-func initVm(env string) error {
+func initVm(env string, serverDir string) error {
+	bDev := false
 	nodeEnv := "production"
 	if env == defs.EnvDev {
 		nodeEnv = "development"
+		bDev = true
 	}
 
 	gInitJs = strings.Replace(initJsContent, "$NODE_ENV", nodeEnv, 1)
@@ -24,6 +34,21 @@ func initVm(env string) error {
 	gInitJsCache, err = CompileJsScript(gInitJs, gInitJsName)
 	if err != nil {
 		return err
+	}
+
+	if serverDir != "" {
+		gServerFileName = serverDir + "/" + gServerJsName
+		if !bDev {
+			content, err := os.ReadFile(gServerFileName)
+			if err != nil {
+				return err
+			}
+			gServerJs = util.UnsafeBytes2Str(content)
+			gServerJsCache, err = CompileJsScript(gServerJs, gServerJsName)
+			if err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }

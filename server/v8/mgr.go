@@ -36,8 +36,8 @@ type VmMgr struct {
 
 var ThisVmMgr *VmMgr
 
-func NewVmMgr(env string, callback SendEventCallback, vc *VmConfig, xc *XhrConfig) (*VmMgr, error) {
-	err := initVm(env)
+func NewVmMgr(env string, serverDir string, callback SendEventCallback, vc *VmConfig, xc *XhrConfig) (*VmMgr, error) {
+	err := initVm(env, serverDir)
 	if err != nil {
 		return nil, err
 	}
