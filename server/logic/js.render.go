@@ -39,7 +39,7 @@ const renderJsContent = `
 		}
 		v8goGo.sendEvent(ctx.renderId, "render_ok", JSON.stringify(msg));
 	}).catch((err) => {
-		v8goGo.sendEvent(ctx.renderId, "render_fail", err.toString());
+		v8goGo.sendEvent(ctx.renderId, "render_fail", err.stack);
 	})
 })()
 `
