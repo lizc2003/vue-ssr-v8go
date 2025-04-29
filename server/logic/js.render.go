@@ -20,8 +20,8 @@ import (
 
 type RenderResult struct {
 	Html  string `json:"html"`
-	Meta  string `json:"meta"`
-	State string `json:"state"`
+	Meta  string `json:"htmlMeta"`
+	State string `json:"htmlState"`
 }
 
 const renderJsName = "render.js"
@@ -31,11 +31,11 @@ const renderJsContent = `
 	const ctx = $RENDER_CONTEXT;
 	ssrRender(ctx).then((html) => {
 		msg = {html: html};
-		if (typeof ctx.meta === 'string') {
-			msg.meta = ctx.meta;
+		if (typeof ctx.htmlMeta === 'string') {
+			msg.meta = ctx.htmlMeta;
 		}
-		if (ctx.state) {
-			msg.state = JSON.stringify(ctx.state);
+		if (ctx.htmlState) {
+			msg.state = JSON.stringify(ctx.htmlState);
 		}
 		v8goGo.sendEvent(ctx.renderId, "render_ok", JSON.stringify(msg));
 	}).catch((err) => {
