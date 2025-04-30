@@ -24,10 +24,12 @@ a:hover {
 
 body {
   margin: 0;
+  padding: 0;
   display: flex;
   place-items: center;
-  min-width: 320px;
+  width: 100%;
   min-height: 100vh;
+  background-color: #1a1a1a;
 }
 
 h1 {
@@ -59,9 +61,8 @@ button:focus-visible {
 }
 
 #app {
-  max-width: 1280px;
+  max-width: 100%;
   margin: 0 auto;
-  padding: 2rem;
   text-align: center;
 }
 
