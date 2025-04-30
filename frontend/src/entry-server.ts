@@ -1,13 +1,16 @@
 import { renderToString } from '@vue/server-renderer'
 import { makeApp } from './app'
 
+declare function dumpObject(obj: any): string;
+
 async function render(ctx: any) {
-    const { app, router, store, head } = makeApp()
+    //const { app, router, store, head } = makeApp()
+    const { app, router } = makeApp()
     await router.push(ctx.url)
 
     const html = await renderToString(app, ctx)
-    console.log(dumpObject(store))
-    console.log(dumpObject(head))
+    //console.log("store:", dumpObject(store))
+    //console.log("head:", dumpObject(head))
     return html
 }
 

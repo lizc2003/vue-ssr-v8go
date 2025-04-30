@@ -8,7 +8,7 @@ import (
 
 const (
 	DistPath   = "/dist/"
-	ClientPath = "client"
+	ClientPath = "public"
 	ServerPath = "server"
 	IndexName  = "index.html"
 

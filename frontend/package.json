@@ -5,7 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc -b && vite build",
+    "typecheck": "vue-tsc --noEmit",
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "vue-tsc -b && vite build --ssrManifest --outDir ../dist/public --emptyOutDir",
+    "build:server": "vue-tsc -b && vite build -c vite.config.server.ts --outDir ../dist/server --emptyOutDir",
     "preview": "vite preview"
   },
   "dependencies": {

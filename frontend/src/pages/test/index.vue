@@ -14,7 +14,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCounterStore } from '@/stores/counter'
 import axios from 'axios'
@@ -42,6 +42,7 @@ const getIpInfo = async () => {
   try {
     const response = await APItest.test()
     counter.ip = response
+    console.log('xmlhttprequest success:', dumpObject(response))
   } catch (error) {
     console.error('xmlhttprequest fail:', error)
   }
