@@ -12,6 +12,11 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'src'),
     }
   },
+  build: {
+    emptyOutDir: true,
+    outDir: '../dist/public',
+    assetsDir: 'assets',
+  },
   server: {
     proxy: {
       '/api/ifconfig': {

@@ -48,6 +48,8 @@ func HandleSsrRequest(c *gin.Context) {
 		ContentType: "text/html; charset=utf-8",
 		Data:        util.UnsafeStr2Bytes(indexHtml),
 	})
+
+	tlog.Debugf("request finish: %s, error: %v", url, err)
 }
 
 func ssrRender(url string, ssrHeaders map[string]string) (RenderResult, error) {

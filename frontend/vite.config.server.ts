@@ -4,15 +4,17 @@ import config from './vite.config'
 export default defineConfig({
   ...config,
   build: {
+    emptyOutDir: true,
+    outDir: '../dist/server',
     rollupOptions: {
-      input: {
-        server: 'src/entry-server.ts',
-      },
       output: {
-        format: 'cjs',
-        entryFileNames: '[name].js',
-        inlineDynamicImports: true,
+        format: 'iife',
+        entryFileNames: 'server.js',
       },
     },
+  },
+  ssr: {
+    target: 'webworker',
+    noExternal: true,
   },
 })

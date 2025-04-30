@@ -29,8 +29,8 @@ const renderJsName = "render.js"
 const renderJsContent = `
 (function() {
 	const ctx = $RENDER_CONTEXT;
-	ssrRender(ctx).then((html) => {
-		msg = {html: html};
+	v8goRenderToString(ctx).then((html) => {
+		var msg = {html: html};
 		if (typeof ctx.htmlMeta === 'string') {
 			msg.meta = ctx.htmlMeta;
 		}

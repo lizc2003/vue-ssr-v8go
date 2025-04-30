@@ -70,6 +70,7 @@ func NewVmMgr(env string, serverDir string, callback SendEventCallback, vc *VmCo
 
 func (this *VmMgr) Execute(code string, scriptName string) error {
 	w := this.acquireWorker()
+
 	if w == nil {
 		errMsg := ErrorNoVm.Error()
 		tlog.Error(errMsg)
@@ -77,6 +78,9 @@ func (this *VmMgr) Execute(code string, scriptName string) error {
 		return ErrorNoVm
 	}
 	err := w.Execute(code, scriptName)
+
+	//w.Execute(`console.debug(dumpObject(globalThis))`, "test.js")
+
 	this.releaseWorker(w)
 
 	if err != nil {

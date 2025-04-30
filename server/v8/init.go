@@ -56,7 +56,7 @@ func initVm(env string, serverDir string) error {
 const initJsContent = `
 globalThis.process = { env: { NODE_ENV: '$NODE_ENV' }};
 globalThis.v8goJs = {};
-globalThis.dumpObject = function() {
+globalThis.dumpObject = (function() {
 	const maxDepth = 20;
 
 	function _dumpObject(obj, depth, seen) {
@@ -151,5 +151,5 @@ globalThis.dumpObject = function() {
 		let seen = new WeakMap()
 		return _dumpObject(obj, 0, seen);
 	}
-}();
+})();
 `

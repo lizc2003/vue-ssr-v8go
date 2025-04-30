@@ -3,7 +3,7 @@ import { makeApp } from './app'
 
 declare function dumpObject(obj: any): string;
 
-async function render(ctx: any) {
+async function doRenderToString(ctx: any) {
     //const { app, router, store, head } = makeApp()
     const { app, router } = makeApp()
     await router.push(ctx.url)
@@ -14,4 +14,4 @@ async function render(ctx: any) {
     return html
 }
 
-(globalThis as any).ssrRender = render
+(globalThis as any).v8goRenderToString = doRenderToString
