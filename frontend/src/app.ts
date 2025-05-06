@@ -1,15 +1,14 @@
 import { createApp, createSSRApp } from 'vue'
 import App from './App.vue'
-import { createAppRouter } from './router'
+import { createRouter } from './router'
 import { createPinia } from 'pinia'
 import { createHead } from '@unhead/vue/client'
 import './style.css'
 
 
 export function makeApp() {
-  const isServer = typeof window === 'undefined'
-  const app = isServer ? createSSRApp(App) : createApp(App)
-  const router = createAppRouter(isServer)
+  const app = import.meta.env.SSR ? createSSRApp(App) : createApp(App)
+  const router = createRouter()
   const store = createPinia()
   const head = createHead()
 

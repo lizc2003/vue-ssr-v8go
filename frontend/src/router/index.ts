@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory, createMemoryHistory } from 'vue-router'
+import { createRouter as _createRouter, createWebHistory, createMemoryHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import Home from '@/pages/home/index.vue'
 import Test from '@/pages/test/index.vue'
@@ -12,9 +12,9 @@ const routes: RouteRecordRaw[] = [
   }
 ]
 
-export function createAppRouter(isServer: boolean) {
-  return createRouter({
-    history: isServer ? createMemoryHistory() : createWebHistory(),
+export function createRouter() {
+  return _createRouter({
+    history: import.meta.env.SSR ? createMemoryHistory() : createWebHistory(),
     routes
   })
 }

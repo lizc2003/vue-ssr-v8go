@@ -8,7 +8,7 @@
     "typecheck": "vue-tsc --noEmit",
     "build": "npm run build:client && npm run build:server",
     "build:client": "vue-tsc -b && vite build",
-    "build:server": "vue-tsc -b && vite build -c vite.config.server.ts --ssr src/entry-server.ts",
+    "build:server": "vue-tsc -b && vite build -c vite.config.server.ts",
     "preview": "vite preview"
   },
   "dependencies": {
