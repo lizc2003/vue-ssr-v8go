@@ -1,17 +1,20 @@
 import { renderToString } from '@vue/server-renderer'
 import { makeApp } from './app'
+import createAxiosInstance from "@/utils/axios.js"
 
 declare function dumpObject(obj: any): string;
 
 async function doRenderToString(ctx: any) {
-    //const { app, router, store, head } = makeApp()
-    const { app, router, store } = makeApp()
-    await router.push(ctx.url)
+  //const { app, router, store, head } = makeApp()
+  const { app, router, store } = makeApp()
+  app.config.globalProperties.$fetcher = createAxiosInstance(JSON.stringify(ctx.ssrHeaders))
 
-    const html = await renderToString(app, ctx)
-    ctx.htmlState = store.state.value
-    //console.log("head:", dumpObject(head))
-    return html
+  await router.push(ctx.url)
+
+  const html = await renderToString(app, ctx)
+  ctx.htmlState = store.state.value
+  //console.log("head:", dumpObject(head))
+  return html
 }
 
 (globalThis as any).v8goRenderToString = doRenderToString

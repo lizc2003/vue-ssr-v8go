@@ -1,11 +1,9 @@
-import request from "@/api/axios.js"
-
 export default {
-  test() {
+  test(fetcher) {
     if (import.meta.env.SSR) {
-      return request('https://ifconfig.me/all.json', {}, { method: 'get' })
+      return fetcher.fetch('https://ifconfig.me/all.json', {}, { method: 'get' })
     } else {
-      return request('/api/ifconfig/all.json', {}, { method: 'get' })
+      return fetcher.fetch('/api/ifconfig/all.json', {}, { method: 'get' })
     }
   }
 }
