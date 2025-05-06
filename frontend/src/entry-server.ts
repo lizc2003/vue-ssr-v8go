@@ -1,6 +1,6 @@
 import { renderToString } from '@vue/server-renderer'
 import { makeApp } from './app'
-import createAxiosInstance from "@/utils/axios.js"
+import createAxiosInstance from '@/utils/axios.js'
 
 declare function dumpObject(obj: any): string;
 

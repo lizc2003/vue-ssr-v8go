@@ -14,13 +14,11 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCounterStore } from '@/stores/counter'
-import axios from 'axios'
-import APItest from '@/api/apiTest.js'
 import { useSeoMeta } from '@unhead/vue'
 import { useAsyncData } from '@/composables/asyncData.ts'
+import APItest from '@/api/apiTest.js'
 
 useSeoMeta({
   title: 'Test',
@@ -33,7 +31,6 @@ useSeoMeta({
 
 const counter = useCounterStore()
 const router = useRouter();
-const ip = ref('')
 
 const goToHome = () => {
   router.push('/');

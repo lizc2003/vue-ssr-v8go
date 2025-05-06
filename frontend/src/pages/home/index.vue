@@ -11,7 +11,6 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCounterStore } from '@/stores/counter'
 import { useSeoMeta } from '@unhead/vue'
@@ -26,7 +25,6 @@ useSeoMeta({
 })
 
 const counter = useCounterStore()
-
 const router = useRouter();
 
 const goToTest = () => {
