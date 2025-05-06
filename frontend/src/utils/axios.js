@@ -1,18 +1,20 @@
 import axios from 'axios'
 
 function createAxiosInstance(ssrHeaders) {
+  const _headers = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  }
+  if (ssrHeaders) {
+    _headers['SSR-Headers'] = ssrHeaders
+  }
+
   const instance = axios.create({
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
-    },
+    headers: _headers,
     timeout: 10000,
   })
 
   instance.interceptors.request.use((config) => {
-    if (ssrHeaders) {
-      config.headers['SSR-Headers'] = ssrHeaders
-    }
     return config
   })
 
