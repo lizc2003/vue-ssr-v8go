@@ -31,25 +31,23 @@ function createAxiosInstance(ssrHeaders) {
     }
   )
 
-  return {
-    async fetch(url, data = {}, options = {}) {
-      const {method = 'get', headers = {}, ...rest} = options
+  return async function (url, data = {}, options = {}) {
+    const {method = 'get', headers = {}, ...rest} = options
 
-      const config = {
-        url,
-        method,
-        headers,
-        ...rest
-      }
-
-      if (method.toLowerCase() === 'get') {
-        config.params = data
-      } else {
-        config.data = data
-      }
-
-      return instance(config)
+    const config = {
+      url,
+      method,
+      headers,
+      ...rest
     }
+
+    if (method.toLowerCase() === 'get') {
+      config.params = data
+    } else {
+      config.data = data
+    }
+
+    return instance(config)
   }
 }
 
