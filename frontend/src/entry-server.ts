@@ -7,7 +7,7 @@ declare function dumpObject(obj: any): string;
 async function doRenderToString(ctx: any) {
   //const { app, router, store, head } = makeApp()
   const { app, router, store } = makeApp()
-  app.config.globalProperties.$fetcher = createAxiosInstance(JSON.stringify(ctx.ssrHeaders))
+  app.config.globalProperties.$fetchFn = createAxiosInstance(JSON.stringify(ctx.ssrHeaders))
 
   await router.push(ctx.url)
 

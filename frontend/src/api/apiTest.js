@@ -1,9 +1,9 @@
 export default {
-  test(fetcher) {
+  test(fetchFn) {
     if (import.meta.env.SSR) {
-      return fetcher('https://ifconfig.me/all.json', {}, { method: 'get' })
+      return fetchFn('https://ifconfig.me/all.json', {}, { method: 'get' })
     } else {
-      return fetcher('/api/ifconfig/all.json', {}, { method: 'get' })
+      return fetchFn('/api/ifconfig/all.json', {}, { method: 'get' })
     }
   }
 }
