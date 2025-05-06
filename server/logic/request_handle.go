@@ -37,12 +37,10 @@ func HandleSsrRequest(c *gin.Context) {
 	tlog.Infof("request: %s", url)
 
 	result, err := ssrRender(url, ssrHeaders)
-	indexHtml := ThisServer.RenderMgr.GetIndexHtml()
-	if err == nil {
-		indexHtml = strings.Replace(indexHtml, "<!--app-html-->", result.Html, 1)
-	} else {
+	if err != nil {
 		tlog.Errorf("ssr render failed: %s", err.Error())
 	}
+	indexHtml := ThisServer.RenderMgr.IndexHtml.GetIndexHtml(result, err)
 
 	c.Render(http.StatusOK, render.Data{
 		ContentType: "text/html; charset=utf-8",

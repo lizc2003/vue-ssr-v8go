@@ -9,7 +9,7 @@ async function doRenderToString(ctx: any) {
     await router.push(ctx.url)
 
     const html = await renderToString(app, ctx)
-    console.log("store:", dumpObject(store.state.value))
+    ctx.htmlState = store.state.value
     //console.log("head:", dumpObject(head))
     return html
 }

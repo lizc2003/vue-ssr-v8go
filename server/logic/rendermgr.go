@@ -1,10 +1,6 @@
 package logic
 
 import (
-	"github.com/lizc2003/vue-ssr-v8go/server/common/defs"
-	"github.com/lizc2003/vue-ssr-v8go/server/common/tlog"
-	"github.com/lizc2003/vue-ssr-v8go/server/common/util"
-	"os"
 	"sync"
 )
 
@@ -16,28 +12,21 @@ type Render struct {
 }
 
 type RenderMgr struct {
-	mutex         sync.Mutex
-	renders       map[int64]*Render
-	maxId         int64
-	indexFileName string
-	indexHtml     string
+	mutex     sync.Mutex
+	renders   map[int64]*Render
+	maxId     int64
+	IndexHtml *IndexHtml
 }
 
 func NewRenderMgr(env string, publicDir string) (*RenderMgr, error) {
-	var indexHtml string
-	indexFileName := publicDir + "/" + IndexName
-	content, err := os.ReadFile(indexFileName)
+	indexHtml, err := NewIndexHtml(env, publicDir)
 	if err != nil {
 		return nil, err
 	}
-	if env != defs.EnvDev {
-		indexHtml = string(content)
-	}
 
 	return &RenderMgr{
-		renders:       make(map[int64]*Render),
-		indexFileName: indexFileName,
-		indexHtml:     indexHtml,
+		renders:   make(map[int64]*Render),
+		IndexHtml: indexHtml,
 	}, nil
 }
 
@@ -71,17 +60,4 @@ func (this *RenderMgr) SendResult(renderId int64, bOK bool, result RenderResult)
 		delete(this.renders, renderId)
 	}
 	this.mutex.Unlock()
-}
-
-func (this *RenderMgr) GetIndexHtml() string {
-	if this.indexHtml != "" {
-		return this.indexHtml
-	}
-
-	content, err := os.ReadFile(this.indexFileName)
-	if err != nil {
-		tlog.Error(err)
-		return ""
-	}
-	return util.UnsafeBytes2Str(content)
 }

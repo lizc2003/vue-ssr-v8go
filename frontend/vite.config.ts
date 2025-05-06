@@ -15,6 +15,7 @@ export default defineConfig({
   build: {
     emptyOutDir: true,
     outDir: '../dist/public',
+    ssrManifest: true,
     assetsDir: 'assets',
   },
   server: {

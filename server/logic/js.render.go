@@ -20,8 +20,8 @@ import (
 
 type RenderResult struct {
 	Html  string `json:"html"`
-	Meta  string `json:"htmlMeta"`
-	State string `json:"htmlState"`
+	Meta  string `json:"meta"`
+	State string `json:"state"`
 }
 
 const renderJsName = "render.js"
@@ -30,7 +30,7 @@ const renderJsContent = `
 (function() {
 	const ctx = $RENDER_CONTEXT;
 	v8goRenderToString(ctx).then((html) => {
-		var msg = {html: html};
+		let msg = {html: html};
 		if (typeof ctx.htmlMeta === 'string') {
 			msg.meta = ctx.htmlMeta;
 		}

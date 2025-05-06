@@ -20,6 +20,7 @@ import { useCounterStore } from '@/stores/counter'
 import axios from 'axios'
 import APItest from '@/api/api/apiTest.js'
 import { useSeoMeta } from '@unhead/vue'
+import { useAsyncData } from '@/composables/asyncData.ts'
 
 useSeoMeta({
   title: 'Test',
@@ -38,19 +39,10 @@ const goToHome = () => {
   router.push('/');
 };
 
-const getIpInfo = async () => {
-  try {
-    const response = await APItest.test()
-    counter.ip = response
-    console.log('xmlhttprequest success:', dumpObject(response))
-  } catch (error) {
-    console.error('xmlhttprequest fail:', error)
-  }
-}
-
-if(!counter?.ip?.ip_addr){
-  console.log('http request for ip now.')
-  getIpInfo()
+try {
+  useAsyncData(counter, 'ip', APItest.test)
+} catch (error) {
+  console.error('useAsyncData fail:', error)
 }
 
 </script>

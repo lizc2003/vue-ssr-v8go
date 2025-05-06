@@ -7,6 +7,7 @@ export default defineConfig({
     emptyOutDir: true,
     outDir: '../dist/server',
     ssr: 'src/entry-server.ts',
+    copyPublicDir: false,
     rollupOptions: {
       output: {
         format: 'iife',
