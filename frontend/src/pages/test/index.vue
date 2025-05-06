@@ -18,7 +18,7 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCounterStore } from '@/stores/counter'
 import axios from 'axios'
-import APItest from '@/api/api/apiTest.js'
+import APItest from '@/api/apiTest.js'
 import { useSeoMeta } from '@unhead/vue'
 import { useAsyncData } from '@/composables/asyncData.ts'
 
