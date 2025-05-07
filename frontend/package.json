@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "watch": "npm run build:client -- --watch & npm run build:server -- --watch",
     "typecheck": "vue-tsc --noEmit",
     "build": "npm run build:client && npm run build:server",
     "build:client": "vue-tsc -b && vite build",
