@@ -48,7 +48,7 @@ func NewIndexHtml(env string, publicDir string) (*IndexHtml, error) {
 func (this *IndexHtml) GetIndexHtml(result RenderResult, renderErr error) string {
 	indexHtml, metaBegin, metaEnd := this.getRawIndexHtml()
 	if renderErr == nil {
-		if result.Meta != "" {
+		if result.Meta != "" && metaBegin > 0 {
 			indexHtml = indexHtml[:metaBegin] + result.Meta + indexHtml[metaEnd:]
 		}
 		if result.PreloadLinks != "" {
@@ -81,9 +81,10 @@ func (this *IndexHtml) getRawIndexHtml() (string, int, int) {
 func getMetaPosition(indexHtml string) (int, int) {
 	metaBegin := strings.Index(indexHtml, "<!--meta-begin-->")
 	metaEnd := strings.Index(indexHtml[metaBegin+1:], "<!--meta-end-->")
-	metaEnd += metaBegin + 1
-	if metaBegin <= 0 {
+	if metaBegin <= 0 || metaEnd < 0 {
 		return 0, 0
 	}
+
+	metaEnd += metaBegin + 1
 	return metaBegin, metaEnd + 15
 }
