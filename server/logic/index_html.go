@@ -13,6 +13,7 @@ type IndexHtml struct {
 	indexHtml     string
 	metaBegin     int
 	metaEnd       int
+	NotfoundHtml  string
 	SsrManifest   string
 }
 
@@ -30,6 +31,14 @@ func NewIndexHtml(env string, publicDir string) (*IndexHtml, error) {
 		metaBegin, metaEnd = getMetaPosition(indexHtml)
 	}
 
+	var notfoundHtml string
+	content, err = os.ReadFile(publicDir + "/" + NotfoundName)
+	if err == nil {
+		notfoundHtml = string(content)
+	} else {
+		notfoundHtml = `<!DOCTYPE html><html lang="en"><head></head><body><h1>Page Not Found</h1></body></html>`
+	}
+
 	var manifest string
 	content, err = os.ReadFile(publicDir + "/" + ManifestName)
 	if err == nil {
@@ -41,6 +50,7 @@ func NewIndexHtml(env string, publicDir string) (*IndexHtml, error) {
 		indexHtml:     indexHtml,
 		metaBegin:     metaBegin,
 		metaEnd:       metaEnd,
+		NotfoundHtml:  notfoundHtml,
 		SsrManifest:   manifest,
 	}, nil
 }

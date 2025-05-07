@@ -10,6 +10,11 @@ declare function dumpObject(obj: any): string;
   app.config.globalProperties.$fetchFn = createAxiosInstance(ctx)
 
   await router.push(ctx.url)
+  await router.isReady();
+
+  if (router.currentRoute.value.matched.length === 0) {
+    throw new Error("404");
+  }
 
   const html = await renderToString(app, ctx)
   const {headTags} = await renderSSRHead(head)

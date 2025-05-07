@@ -6,10 +6,6 @@ import Test from '@/pages/test/index.vue'
 const routes: RouteRecordRaw[] = [
   { path: '/', component: Home },
   { path: '/test', component: Test },
-  {
-    path: '/:pathMatch(.*)*',
-    component: () => import('@/pages/404.vue')
-  }
 ]
 
 export function createRouter() {

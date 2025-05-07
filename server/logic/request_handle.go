@@ -38,7 +38,15 @@ func HandleSsrRequest(c *gin.Context) {
 
 	result, err := ssrRender(url, ssrHeaders)
 	if err != nil {
-		tlog.Errorf("ssr render failed: %s", err.Error())
+		errMsg := err.Error()
+		tlog.Errorf("ssr render failed: %s", errMsg)
+		if strings.Contains(errMsg, "Error: 404") {
+			c.Render(http.StatusNotFound, render.Data{
+				ContentType: "text/html; charset=utf-8",
+				Data:        util.UnsafeStr2Bytes(ThisServer.RenderMgr.IndexHtml.NotfoundHtml),
+			})
+			return
+		}
 	}
 	indexHtml := ThisServer.RenderMgr.IndexHtml.GetIndexHtml(result, err)
 
