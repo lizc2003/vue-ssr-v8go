@@ -1,5 +1,5 @@
 import { makeApp } from './app'
-import createAxiosInstance from '@/utils/axios'
+import { createAxiosInstance } from '@/utils/axios.ts'
 
 const { app, router, store} = makeApp()
 app.config.globalProperties.$fetchFn = createAxiosInstance()

@@ -18,7 +18,7 @@ import { useRouter } from 'vue-router';
 import { useCounterStore } from '@/stores/counter'
 import { useSeoMeta } from '@unhead/vue'
 import { useAsyncData } from '@/composables/asyncData.ts'
-import APItest from '@/api/apiTest.js'
+import { apiTest } from '@/api/apiTest.ts'
 
 useSeoMeta({
   title: 'Test',
@@ -37,7 +37,7 @@ const goToHome = () => {
 };
 
 try {
-  useAsyncData(counter, 'ip', APItest.test)
+  useAsyncData(counter, 'ip', apiTest)
 } catch (error) {
   console.error('useAsyncData fail:', error)
 }
