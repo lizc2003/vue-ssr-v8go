@@ -1,12 +1,12 @@
 import axios from 'axios'
 
-function createAxiosInstance(ssrHeaders) {
+function createAxiosInstance(ssrCtx) {
   const _headers = {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
   }
-  if (ssrHeaders) {
-    _headers['SSR-Headers'] = ssrHeaders
+  if (ssrCtx) {
+    _headers['SSR-Headers'] = JSON.stringify(ssrCtx.ssrHeaders)
   }
 
   const instance = axios.create({

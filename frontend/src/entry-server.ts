@@ -4,10 +4,10 @@ import createAxiosInstance from '@/utils/axios.js'
 
 declare function dumpObject(obj: any): string;
 
-async function doRenderToString(ctx: any) {
+(globalThis as any).v8goRenderToString = async function (ctx: any) {
   //const { app, router, store, head } = makeApp()
   const { app, router, store } = makeApp()
-  app.config.globalProperties.$fetchFn = createAxiosInstance(JSON.stringify(ctx.ssrHeaders))
+  app.config.globalProperties.$fetchFn = createAxiosInstance(ctx)
 
   await router.push(ctx.url)
 
@@ -16,5 +16,3 @@ async function doRenderToString(ctx: any) {
   //console.log("head:", dumpObject(head))
   return html
 }
-
-(globalThis as any).v8goRenderToString = doRenderToString

@@ -30,7 +30,7 @@ const renderJsContent = `
 (function() {
 	const ctx = $RENDER_CONTEXT;
 	v8goRenderToString(ctx).then((html) => {
-		let msg = {html: html};
+		const msg = {html: html};
 		if (typeof ctx.htmlMeta === 'string') {
 			msg.meta = ctx.htmlMeta;
 		}
