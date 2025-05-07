@@ -15,17 +15,17 @@ export const useCounterStore = defineStore("counter", {
     setData(key: string, data: any) {
       this[key] = data
     },
-    getData(this: CounterState, key: string) {
+    getData(key: string) {
       return this[key]
     },
-    increment(this: CounterState) {
+    increment() {
       this.count++;
     },
-    decrement(this: CounterState): any {
+    decrement(): any {
       this.count--;
     },
   },
   getters: {
-    doubleCount: (state: any) => state.count * 2,
+    doubleCount: (state: CounterState) => state.count * 2,
   },
 });
