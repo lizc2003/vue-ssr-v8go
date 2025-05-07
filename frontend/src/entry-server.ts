@@ -17,8 +17,6 @@ declare function dumpObject(obj: any): string;
   ctx.htmlState = store.state.value
   ctx.htmlMeta = headTags
   ctx.preloadLinks = renderPreloadLinks(ctx.modules, ctx.manifest);
-
-  //console.log("head:", dumpObject(head))
   return html
 }
 

@@ -49,7 +49,14 @@ func (this *IndexHtml) GetIndexHtml(result RenderResult, renderErr error) string
 	indexHtml, metaBegin, metaEnd := this.getRawIndexHtml()
 	if renderErr == nil {
 		if result.Meta != "" && metaBegin > 0 {
-			indexHtml = indexHtml[:metaBegin] + result.Meta + indexHtml[metaEnd:]
+			s1 := indexHtml[:metaBegin]
+			s2 := indexHtml[metaEnd:]
+			var sb strings.Builder
+			sb.Grow(len(s1) + len(s2) + len(result.Meta))
+			sb.WriteString(s1)
+			sb.WriteString(result.Meta)
+			sb.WriteString(s2)
+			indexHtml = sb.String()
 		}
 		if result.PreloadLinks != "" {
 			indexHtml = strings.Replace(indexHtml, "<!--preload-links-->", result.PreloadLinks, 1)
