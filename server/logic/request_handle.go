@@ -55,9 +55,10 @@ func ssrRender(url string, ssrHeaders map[string]string) (RenderResult, error) {
 
 	ssrHeadersJson, _ := json.Marshal(ssrHeaders)
 	urlJson, _ := json.Marshal(url)
+	manifest := ThisServer.RenderMgr.IndexHtml.SsrManifest
 
 	var jsCode strings.Builder
-	jsCode.Grow(renderJsLength + len(ssrHeadersJson) + len(urlJson) + 64)
+	jsCode.Grow(renderJsLength + len(ssrHeadersJson) + len(urlJson) + len(manifest) + 64)
 	jsCode.WriteString(renderJsPart1)
 	jsCode.WriteString(`{renderId:`)
 	jsCode.WriteString(strconv.FormatInt(req.renderId, 10))
@@ -65,6 +66,10 @@ func ssrRender(url string, ssrHeaders map[string]string) (RenderResult, error) {
 	jsCode.Write(urlJson)
 	jsCode.WriteString(`,ssrHeaders:`)
 	jsCode.Write(ssrHeadersJson)
+	if manifest != "" {
+		jsCode.WriteString(`,manifest:`)
+		jsCode.WriteString(manifest)
+	}
 	jsCode.WriteString(`}`)
 	jsCode.WriteString(renderJsPart2)
 

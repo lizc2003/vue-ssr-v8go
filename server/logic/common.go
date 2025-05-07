@@ -7,10 +7,11 @@ import (
 )
 
 const (
-	DistPath   = "/dist/"
-	ClientPath = "public"
-	ServerPath = "server"
-	IndexName  = "index.html"
+	DistPath     = "/dist/"
+	ClientPath   = "public"
+	ServerPath   = "server"
+	IndexName    = "index.html"
+	ManifestName = ".vite/ssr-manifest.json"
 
 	RenderTimeout = 30 * time.Second
 )

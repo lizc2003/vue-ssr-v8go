@@ -148,7 +148,7 @@ globalThis.dumpObject = (function() {
 	}
 
 	return function(obj) {
-		let seen = new WeakMap()
+		const seen = new WeakMap()
 		return _dumpObject(obj, 0, seen);
 	}
 })();

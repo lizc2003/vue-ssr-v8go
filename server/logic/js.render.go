@@ -19,9 +19,10 @@ import (
 )
 
 type RenderResult struct {
-	Html  string `json:"html"`
-	Meta  string `json:"meta"`
-	State string `json:"state"`
+	Html         string `json:"html"`
+	Meta         string `json:"meta"`
+	State        string `json:"state"`
+	PreloadLinks string `json:"preloadLinks"`
 }
 
 const renderJsName = "render.js"
@@ -33,6 +34,9 @@ const renderJsContent = `
 		const msg = {html: html};
 		if (typeof ctx.htmlMeta === 'string') {
 			msg.meta = ctx.htmlMeta;
+		}
+		if (typeof ctx.preloadLinks === 'string') {
+			msg.preloadLinks = ctx.preloadLinks;
 		}
 		if (ctx.htmlState) {
 			msg.state = JSON.stringify(ctx.htmlState);
