@@ -8,13 +8,13 @@ import (
 
 const (
 	DistPath     = "/dist/"
-	ClientPath   = "public"
+	PublicPath   = "public"
 	ServerPath   = "server"
 	IndexName    = "index.html"
 	NotfoundName = "404.html"
 	ManifestName = ".vite/ssr-manifest.json"
 
-	RenderTimeout = 30 * time.Second
+	RenderTimeout = 15 * time.Second
 )
 
 var (

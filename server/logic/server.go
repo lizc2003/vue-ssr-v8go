@@ -40,7 +40,7 @@ func RunServer(c *Config) {
 	}
 
 	distPath := getDistPath()
-	publicDir := distPath + ClientPath
+	publicDir := distPath + PublicPath
 	serverDir := distPath + ServerPath
 
 	vmMgr, err := v8.NewVmMgr(c.Env, serverDir, SendEventCallback, &c.VmConfig, &c.XhrConfig)
