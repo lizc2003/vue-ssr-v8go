@@ -35,7 +35,7 @@ func RunServer(c *Config) {
 		alarm.NewDefaultRobotFeiShu(c.AlarmSecret)
 	}
 
-	err := initReverseProxy(c.Proxy.Locations)
+	err := InitReverseProxy(c.Proxy.Locations)
 	if err != nil {
 		tlog.Fatal(err.Error())
 		return

@@ -17,7 +17,7 @@ type LocationReverseProxy struct {
 
 var gReverseProxies []*LocationReverseProxy
 
-func initReverseProxy(locs []ProxyLocation) error {
+func InitReverseProxy(locs []ProxyLocation) error {
 	if len(locs) == 0 {
 		return nil
 	}
@@ -48,6 +48,15 @@ func initReverseProxy(locs []ProxyLocation) error {
 	return nil
 }
 
+func GetReverseProxy(urlPath string) *httputil.ReverseProxy {
+	for _, proxy := range gReverseProxies {
+		if strings.HasPrefix(urlPath, proxy.path) {
+			return proxy.proxy
+		}
+	}
+	return nil
+}
+
 func makeReverseProxy(target *url.URL, pattern, replaceVal string) *httputil.ReverseProxy {
 	return &httputil.ReverseProxy{
 		Rewrite: func(r *httputil.ProxyRequest) {
@@ -61,15 +70,6 @@ func makeReverseProxy(target *url.URL, pattern, replaceVal string) *httputil.Rev
 			r.Out.Host = target.Host
 		},
 	}
-}
-
-func getReverseProxy(urlPath string) *httputil.ReverseProxy {
-	for _, proxy := range gReverseProxies {
-		if strings.HasPrefix(urlPath, proxy.path) {
-			return proxy.proxy
-		}
-	}
-	return nil
 }
 
 type ProxyLocation struct {

@@ -21,7 +21,7 @@ func GetHttpHandler(env string, publicDir string, assetsPrefix string) http.Hand
 		if strings.HasPrefix(request.URL.Path, assetsPrefix) {
 			assetsServer.ServeHTTP(writer, request)
 		} else {
-			proxy := getReverseProxy(request.URL.Path)
+			proxy := GetReverseProxy(request.URL.Path)
 			if proxy != nil {
 				tlog.Debugf("proxy: %s", request.URL.Path)
 				proxy.ServeHTTP(writer, request)
