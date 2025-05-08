@@ -37,7 +37,15 @@ func HandleSsrRequest(writer http.ResponseWriter, request *http.Request) {
 	statusCode, indexHtml, err := ThisServer.RenderMgr.IndexHtml.GetIndexHtml(result, err)
 	util.WriteHtmlResponse(writer, statusCode, indexHtml)
 
-	tlog.Infof("request finish: %s, elapse: %v, error: %v", url, time.Since(beginTime), err)
+	if err != nil {
+		if err == ErrorSsrOff {
+			tlog.Infof("request finish: %s, elapse: %v, off ssr", url, time.Since(beginTime))
+		} else {
+			tlog.Infof("request finish: %s, elapse: %v, ssr error: %v", url, time.Since(beginTime), err)
+		}
+	} else {
+		tlog.Infof("request finish: %s, elapse: %v", url, time.Since(beginTime))
+	}
 }
 
 func ssrRender(url string, ssrHeaders map[string]string) (RenderResult, error) {
