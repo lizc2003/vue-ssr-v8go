@@ -19,6 +19,7 @@ type Config struct {
 	SsrHeaders   []string     `toml:"ssr_headers"`
 	VmConfig     v8.VmConfig  `toml:"Vm"`
 	XhrConfig    v8.XhrConfig `toml:"Xhr"`
+	Proxy        ProxyConfig  `toml:"Proxy"`
 }
 
 type Server struct {
@@ -32,6 +33,12 @@ var ThisServer *Server
 func RunServer(c *Config) {
 	if c.AlarmSecret != "" {
 		alarm.NewDefaultRobotFeiShu(c.AlarmSecret)
+	}
+
+	err := initReverseProxy(c.Proxy.Locations)
+	if err != nil {
+		tlog.Fatal(err.Error())
+		return
 	}
 
 	distPath := getDistPath()

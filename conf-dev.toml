@@ -11,3 +11,9 @@ filesize=256
 filename="run"
 level="DEBUG"
 dir="./log/{svr.name}"
+
+[Proxy]
+[[Proxy.location]]
+path = "/api/ifconfig"
+target = "https://ifconfig.me"
+rewrite = ["/api/ifconfig", ""]
