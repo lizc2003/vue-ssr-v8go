@@ -4,6 +4,7 @@ import (
 	"github.com/lizc2003/vue-ssr-v8go/server/common/defs"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/tlog"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/util"
+	"net/http"
 	"os"
 	"strings"
 )
@@ -13,7 +14,7 @@ type IndexHtml struct {
 	indexHtml     string
 	metaBegin     int
 	metaEnd       int
-	NotfoundHtml  string
+	notfoundHtml  string
 	SsrManifest   string
 }
 
@@ -50,12 +51,22 @@ func NewIndexHtml(env string, publicDir string) (*IndexHtml, error) {
 		indexHtml:     indexHtml,
 		metaBegin:     metaBegin,
 		metaEnd:       metaEnd,
-		NotfoundHtml:  notfoundHtml,
+		notfoundHtml:  notfoundHtml,
 		SsrManifest:   manifest,
 	}, nil
 }
 
-func (this *IndexHtml) GetIndexHtml(result RenderResult, renderErr error) string {
+func (this *IndexHtml) GetIndexHtml(result RenderResult, renderErr error) (int, string, error) {
+	err := renderErr
+	if err != nil {
+		errMsg := err.Error()
+		if strings.Contains(errMsg, "Error: 404") {
+			return http.StatusNotFound, this.notfoundHtml, ErrorPageNotFound
+		} else if strings.Contains(errMsg, "Error: ssr-off") {
+			err = ErrorSsrOff
+		}
+	}
+
 	indexHtml, metaBegin, metaEnd := this.getRawIndexHtml()
 	if renderErr == nil {
 		if result.Meta != "" && metaBegin > 0 {
@@ -77,7 +88,7 @@ func (this *IndexHtml) GetIndexHtml(result RenderResult, renderErr error) string
 		}
 		indexHtml = strings.Replace(indexHtml, "<!--app-html-->", result.Html, 1)
 	}
-	return indexHtml
+	return http.StatusOK, indexHtml, err
 }
 
 func (this *IndexHtml) getRawIndexHtml() (string, int, int) {

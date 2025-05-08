@@ -16,6 +16,10 @@ declare function dumpObject(obj: any): string;
     throw new Error("404");
   }
 
+  if (router.currentRoute.value.meta?.ssrOff) {
+    throw new Error("ssr-off");
+  }
+
   const html = await renderToString(app, ctx)
   const {headTags} = await renderSSRHead(head)
 

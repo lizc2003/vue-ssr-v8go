@@ -11,8 +11,6 @@ import (
 	"time"
 )
 
-var ErrorRenderTimeout = errors.New("render timeout.")
-
 func HandleSsrRequest(writer http.ResponseWriter, request *http.Request) {
 	reqURL := request.URL
 	url := reqURL.Path
@@ -35,17 +33,8 @@ func HandleSsrRequest(writer http.ResponseWriter, request *http.Request) {
 	tlog.Infof("request: %s", url)
 
 	result, err := ssrRender(url, ssrHeaders)
-	if err != nil {
-		errMsg := err.Error()
-		tlog.Errorf("ssr render failed: %s", errMsg)
-		if strings.Contains(errMsg, "Error: 404") {
-			util.WriteHtmlResponse(writer, http.StatusNotFound,
-				ThisServer.RenderMgr.IndexHtml.NotfoundHtml)
-			return
-		}
-	}
-	indexHtml := ThisServer.RenderMgr.IndexHtml.GetIndexHtml(result, err)
-	util.WriteHtmlResponse(writer, http.StatusOK, indexHtml)
+	statusCode, indexHtml, err := ThisServer.RenderMgr.IndexHtml.GetIndexHtml(result, err)
+	util.WriteHtmlResponse(writer, statusCode, indexHtml)
 
 	tlog.Debugf("request finish: %s, error: %v", url, err)
 }

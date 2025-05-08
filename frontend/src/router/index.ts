@@ -4,8 +4,15 @@ import Home from '@/pages/home/index.vue'
 import Test from '@/pages/test/index.vue'
 
 const routes: RouteRecordRaw[] = [
-  { path: '/', component: Home },
-  { path: '/test', component: Test },
+  {
+    path: '/',
+    component: Home,
+    meta: { ssrOff: true }
+  },
+  {
+    path: '/test',
+    component: Test,
+  },
 ]
 
 export function createRouter() {

@@ -1,6 +1,7 @@
 package logic
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"time"
@@ -18,6 +19,10 @@ const (
 )
 
 var (
+	ErrorPageNotFound  = errors.New("page not found")
+	ErrorSsrOff        = errors.New("ssr off")
+	ErrorRenderTimeout = errors.New("render timeout")
+
 	ForwardHeaders = []string{
 		"Cookie",
 		"User-Agent",
