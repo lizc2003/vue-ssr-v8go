@@ -39,13 +39,13 @@ func HandleSsrRequest(writer http.ResponseWriter, request *http.Request) {
 		errMsg := err.Error()
 		tlog.Errorf("ssr render failed: %s", errMsg)
 		if strings.Contains(errMsg, "Error: 404") {
-			util.WriteResponse(writer, http.StatusNotFound,
+			util.WriteHtmlResponse(writer, http.StatusNotFound,
 				ThisServer.RenderMgr.IndexHtml.NotfoundHtml)
 			return
 		}
 	}
 	indexHtml := ThisServer.RenderMgr.IndexHtml.GetIndexHtml(result, err)
-	util.WriteResponse(writer, http.StatusOK, indexHtml)
+	util.WriteHtmlResponse(writer, http.StatusOK, indexHtml)
 
 	tlog.Debugf("request finish: %s, error: %v", url, err)
 }
