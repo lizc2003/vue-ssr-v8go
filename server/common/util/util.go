@@ -3,6 +3,9 @@ package util
 import (
 	"errors"
 	"fmt"
+	"net"
+	"net/http"
+	"os"
 	"strings"
 	"time"
 	"unsafe"
@@ -14,26 +17,52 @@ func FormatTime(t time.Time) string {
 	return fmt.Sprintf("%4d-%02d-%02d %02d:%02d:%02d", y, m, d, hour, minute, second)
 }
 
-func ParseTime(s string) (time.Time, error) {
-	if strings.Index(s, ",") >= 0 {
-		return time.Parse(time.RFC1123, s)
-	} else if strings.Index(s, "T") >= 0 {
-		if len(s) == 19 {
-			return time.Time{}, errors.New("inconsistent with the rfc3339")
-		}
-		return time.Parse(time.RFC3339, s)
-	} else if strings.Index(s, ":") >= 0 {
-		return time.ParseInLocation("2006-01-02 15:04:05", s, time.Local)
-	} else {
-		return time.ParseInLocation("2006-01-02", s, time.Local)
+func FileExists(filePath string) (bool, error) {
+	info, err := os.Stat(filePath)
+	if err == nil {
+		return !info.IsDir(), nil
 	}
+	if errors.Is(err, os.ErrNotExist) {
+		return false, nil
+	}
+	return false, err
+}
+
+func GetClientIP(r *http.Request) string {
+	xForwardedFor := r.Header.Get("X-Forwarded-For")
+	if xForwardedFor != "" {
+		ips := strings.Split(xForwardedFor, ",")
+		for _, ip := range ips {
+			ip = strings.TrimSpace(ip)
+			if ip != "" {
+				return ip
+			}
+		}
+	}
+
+	xRealIP := r.Header.Get("X-Real-IP")
+	if xRealIP != "" {
+		return xRealIP
+	}
+
+	remoteAddr := r.RemoteAddr
+	ip, _, err := net.SplitHostPort(remoteAddr)
+	if err != nil {
+		return remoteAddr
+	}
+	return ip
+}
+
+func WriteResponse(w http.ResponseWriter, status int, html string) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(status)
+	w.Write(UnsafeStr2Bytes(html))
 }
 
 func UnsafeStr2Bytes(s string) []byte {
 	return unsafe.Slice(unsafe.StringData(s), len(s))
 }
 
-// []byte转string
 func UnsafeBytes2Str(b []byte) string {
 	return unsafe.String(unsafe.SliceData(b), len(b))
 }

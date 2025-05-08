@@ -3,8 +3,6 @@ package logic
 import (
 	"encoding/json"
 	"errors"
-	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/render"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/tlog"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/util"
 	"net/http"
@@ -15,8 +13,8 @@ import (
 
 var ErrorRenderTimeout = errors.New("render timeout.")
 
-func HandleSsrRequest(c *gin.Context) {
-	reqURL := c.Request.URL
+func HandleSsrRequest(writer http.ResponseWriter, request *http.Request) {
+	reqURL := request.URL
 	url := reqURL.Path
 	if len(reqURL.RawQuery) > 0 {
 		url += "?"
@@ -25,9 +23,9 @@ func HandleSsrRequest(c *gin.Context) {
 
 	ssrHeaders := make(map[string]string)
 	for _, k := range ThisServer.SsrHeaders {
-		v := c.GetHeader(k)
+		v := request.Header.Get(k)
 		if v == "" && k == "X-Forwarded-For" {
-			v = c.ClientIP()
+			v = util.GetClientIP(request)
 		}
 		if v != "" {
 			ssrHeaders[strings.ReplaceAll(k, "-", "_")] = v
@@ -41,19 +39,13 @@ func HandleSsrRequest(c *gin.Context) {
 		errMsg := err.Error()
 		tlog.Errorf("ssr render failed: %s", errMsg)
 		if strings.Contains(errMsg, "Error: 404") {
-			c.Render(http.StatusNotFound, render.Data{
-				ContentType: "text/html; charset=utf-8",
-				Data:        util.UnsafeStr2Bytes(ThisServer.RenderMgr.IndexHtml.NotfoundHtml),
-			})
+			util.WriteResponse(writer, http.StatusNotFound,
+				ThisServer.RenderMgr.IndexHtml.NotfoundHtml)
 			return
 		}
 	}
 	indexHtml := ThisServer.RenderMgr.IndexHtml.GetIndexHtml(result, err)
-
-	c.Render(http.StatusOK, render.Data{
-		ContentType: "text/html; charset=utf-8",
-		Data:        util.UnsafeStr2Bytes(indexHtml),
-	})
+	util.WriteResponse(writer, http.StatusOK, indexHtml)
 
 	tlog.Debugf("request finish: %s, error: %v", url, err)
 }

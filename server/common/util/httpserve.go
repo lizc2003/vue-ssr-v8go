@@ -2,8 +2,6 @@ package util
 
 import (
 	"context"
-	"github.com/gin-gonic/gin"
-	"github.com/lizc2003/vue-ssr-v8go/server/common/defs"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/tlog"
 	"net/http"
 	"os"
@@ -11,27 +9,6 @@ import (
 	"syscall"
 	"time"
 )
-
-func NewGinEngine(env string) *gin.Engine {
-	isProd := false
-	if env == defs.EnvProd {
-		isProd = true
-		gin.SetMode(gin.ReleaseMode)
-	} else if env == defs.EnvTest {
-		gin.SetMode(gin.TestMode)
-	} else {
-		gin.SetMode(gin.DebugMode)
-	}
-
-	e := gin.New()
-	if isProd {
-		gin.DisableConsoleColor()
-		gin.DefaultWriter = &tlog.IoWriter{}
-	}
-
-	_ = e.SetTrustedProxies([]string{"127.0.0.0/8", "192.168.0.0/16", "172.16.0.0/12", "10.0.0.0/8"})
-	return e
-}
 
 func GraceHttpServe(addr string, handler http.Handler) error {
 	srv := &http.Server{
