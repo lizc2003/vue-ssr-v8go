@@ -9,7 +9,6 @@ import (
 	"strings"
 )
 
-// /////////////////////////////////////////
 type LocationReverseProxy struct {
 	path  string
 	proxy *httputil.ReverseProxy

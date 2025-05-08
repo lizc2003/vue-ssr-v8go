@@ -22,7 +22,7 @@ func HandleSsrRequest(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	ssrHeaders := make(map[string]string)
-	for _, k := range ThisServer.SsrHeaders {
+	for _, k := range ForwardHeaders {
 		v := request.Header.Get(k)
 		if v == "" && k == "X-Forwarded-For" {
 			v = util.GetClientIP(request)

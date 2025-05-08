@@ -5,7 +5,7 @@ import (
 	"github.com/lizc2003/vue-ssr-v8go/server/common/alarm"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/tlog"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/util"
-	v8 "github.com/lizc2003/vue-ssr-v8go/server/v8"
+	"github.com/lizc2003/vue-ssr-v8go/server/v8"
 	"strings"
 	"time"
 )
@@ -16,16 +16,14 @@ type Config struct {
 	Log          tlog.Config  `toml:"Log"`
 	AlarmSecret  string       `toml:"alarm_secret"`
 	AssetsPrefix string       `toml:"assets_prefix"`
-	SsrHeaders   []string     `toml:"ssr_headers"`
 	VmConfig     v8.VmConfig  `toml:"Vm"`
 	XhrConfig    v8.XhrConfig `toml:"Xhr"`
 	Proxy        ProxyConfig  `toml:"Proxy"`
 }
 
 type Server struct {
-	RenderMgr  *RenderMgr
-	VmMgr      *v8.VmMgr
-	SsrHeaders []string
+	RenderMgr *RenderMgr
+	VmMgr     *v8.VmMgr
 }
 
 var ThisServer *Server
@@ -58,9 +56,8 @@ func RunServer(c *Config) {
 	}
 
 	ThisServer = &Server{
-		RenderMgr:  renderMgr,
-		VmMgr:      vmMgr,
-		SsrHeaders: getSsrHeaders(c.SsrHeaders),
+		RenderMgr: renderMgr,
+		VmMgr:     vmMgr,
 	}
 
 	fmt.Printf("At %s, the server was started on port %s.\n",
