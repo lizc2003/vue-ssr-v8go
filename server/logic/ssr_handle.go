@@ -39,7 +39,7 @@ func HandleSsrRequest(writer http.ResponseWriter, request *http.Request) {
 
 	if err != nil {
 		if err == ErrorSsrOff {
-			tlog.Infof("request finish: %s, elapse: %v, off ssr", url, time.Since(beginTime))
+			tlog.Infof("request finish: %s, elapse: %v, ssr off", url, time.Since(beginTime))
 		} else {
 			tlog.Infof("request finish: %s, elapse: %v, ssr error: %v", url, time.Since(beginTime), err)
 		}
