@@ -31,12 +31,13 @@ func HandleSsrRequest(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	tlog.Infof("request: %s", url)
+	beginTime := time.Now()
 
 	result, err := ssrRender(url, ssrHeaders)
 	statusCode, indexHtml, err := ThisServer.RenderMgr.IndexHtml.GetIndexHtml(result, err)
 	util.WriteHtmlResponse(writer, statusCode, indexHtml)
 
-	tlog.Debugf("request finish: %s, error: %v", url, err)
+	tlog.Infof("request finish: %s, elapse: %v, error: %v", url, time.Since(beginTime), err)
 }
 
 func ssrRender(url string, ssrHeaders map[string]string) (RenderResult, error) {
