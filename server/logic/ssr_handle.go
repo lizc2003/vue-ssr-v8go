@@ -37,14 +37,17 @@ func HandleSsrRequest(writer http.ResponseWriter, request *http.Request) {
 	statusCode, indexHtml, err := ThisServer.RenderMgr.IndexHtml.GetIndexHtml(result, err)
 	util.WriteHtmlResponse(writer, statusCode, indexHtml)
 
+	elapse := time.Since(beginTime)
 	if err != nil {
 		if err == ErrorSsrOff {
-			tlog.Infof("request finish: %s, elapse: %v, ssr off", url, time.Since(beginTime))
+			tlog.Infof("request finish: %s, elapse: %v, ssr off", url, elapse)
+		} else if err == ErrorPageNotFound {
+			tlog.Infof("request finish: %s, elapse: %v, page not found", url, elapse)
 		} else {
-			tlog.Infof("request finish: %s, elapse: %v, ssr error: %v", url, time.Since(beginTime), err)
+			tlog.Infof("request finish: %s, elapse: %v, ssr error: %v", url, elapse, err)
 		}
 	} else {
-		tlog.Infof("request finish: %s, elapse: %v", url, time.Since(beginTime))
+		tlog.Infof("request finish: %s, elapse: %v", url, elapse)
 	}
 }
 
