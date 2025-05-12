@@ -10,8 +10,12 @@ import (
 )
 
 const (
-	MaxXhrThreadCount    = 1000
-	MaxVmLiftTime        = 24 * 3600 // seconds
+	MaxVmInstances = 10000
+	MinVmInstances = 5
+	MaxVmLiftTime  = 24 * 3600 // seconds
+	MaxXhrThreads  = 10000
+	MinXhrThreads  = 10
+
 	VmDeleteDelayTime    = 150 * time.Second
 	VmAcquireTimeout     = 8 // seconds
 	ProcessExitThreshold = 1000
@@ -20,17 +24,19 @@ const (
 var ErrorNoVm = errors.New("The VM instance cannot be acquired.")
 
 type VmConfig struct {
-	VmMaxCount int32
-	VmLifeTime int32 // seconds
+	MaxInstances     int32 `toml:"max_instances"`
+	InstanceLifetime int32 `toml:"instance_lifetime"`
+	XhrThreads       int32 `toml:"xmlhttprequest_threads"`
 }
 
 type VmMgr struct {
-	callback           SendEventCallback
-	xhrMgr             *xmlHttpRequestMgr
-	workers            chan *Worker
-	vmLifeTime         int64
-	vmMaxCount         int32
-	vmCurrentCount     int32
+	callback SendEventCallback
+	xhrMgr   *xmlHttpRequestMgr
+	workers  chan *Worker
+
+	vmLifetime         int64
+	vmMaxInstances     int32
+	vmCurrentInstances int32
 	vmAcquireFailCount int32
 }
 
@@ -42,27 +48,28 @@ func NewVmMgr(env string, serverDir string, callback SendEventCallback, vc *VmCo
 		return nil, err
 	}
 
-	vmMaxCount := vc.VmMaxCount
-	if vmMaxCount < 10 {
-		vmMaxCount = 10
+	vmMaxInstances := vc.MaxInstances
+	if vmMaxInstances < MinVmInstances {
+		vmMaxInstances = MinVmInstances
+	} else if vmMaxInstances > MaxVmInstances {
+		vmMaxInstances = MaxVmInstances
 	}
 
-	vmLifeTime := vc.VmLifeTime
-	if vmLifeTime < 0 {
-		vmLifeTime = 0
-	} else if vmLifeTime > MaxVmLiftTime {
-		vmLifeTime = MaxVmLiftTime
+	vmLifetime := vc.InstanceLifetime
+	if vmLifetime < 0 {
+		vmLifetime = 0
+	} else if vmLifetime > MaxVmLiftTime {
+		vmLifetime = MaxVmLiftTime
 	}
 
-	workers := make(chan *Worker, vmMaxCount+100)
-
+	workers := make(chan *Worker, vmMaxInstances+100)
 	ThisVmMgr = &VmMgr{
-		callback:       callback,
-		xhrMgr:         NewXmlHttpRequestMgr(vmMaxCount*2, xc),
-		workers:        workers,
-		vmLifeTime:     int64(vmLifeTime),
-		vmMaxCount:     vmMaxCount,
-		vmCurrentCount: 0,
+		callback:           callback,
+		xhrMgr:             NewXmlHttpRequestMgr(vc.XhrThreads, xc),
+		workers:            workers,
+		vmLifetime:         int64(vmLifetime),
+		vmMaxInstances:     vmMaxInstances,
+		vmCurrentInstances: 0,
 	}
 
 	return ThisVmMgr, nil
@@ -103,16 +110,15 @@ func (this *VmMgr) acquireWorker() *Worker {
 				busyWorkers = append(busyWorkers, worker)
 			}
 		default:
-			if this.vmCurrentCount < this.vmMaxCount {
-				atomic.AddInt32(&this.vmCurrentCount, 1)
+			if this.vmCurrentInstances < this.vmMaxInstances {
 				worker, err := NewWorker(this.callback)
 				if err == nil {
-					worker.SetExpireTime(time.Now().Unix() + this.vmLifeTime)
+					atomic.AddInt32(&this.vmCurrentInstances, 1)
+					worker.SetExpireTime(time.Now().Unix() + this.vmLifetime)
 					worker.Acquire()
 					ret = worker
 				} else {
 					tlog.Error(err)
-					atomic.AddInt32(&this.vmCurrentCount, -1)
 					bNewFail = true
 				}
 			} else {
@@ -153,7 +159,7 @@ func (this *VmMgr) releaseWorker(worker *Worker) {
 		worker.Release()
 
 		if time.Now().Unix() >= worker.GetExpireTime() {
-			atomic.AddInt32(&this.vmCurrentCount, -1)
+			atomic.AddInt32(&this.vmCurrentInstances, -1)
 
 			go func(w *Worker) {
 				time.Sleep(VmDeleteDelayTime)

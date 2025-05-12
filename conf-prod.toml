@@ -1,12 +1,18 @@
 server_host="0.0.0.0:9090"
 env = "prod"
-assets_prefix = "/assets/"
 alarm_secret = ""
+dist_dir = "dist"
+assets_prefix = "/assets/"
+
+[V8vm]
+max_instances = 500
+instance_lifetime = 3600
+xmlhttprequest_threads = 1000
 
 [Log]
 debug=false
 filenum=20
 filesize=256
 filename="run"
-level="DEBUG"
+level="INFO"
 dir="/data/vue-ssr-v8go/log"

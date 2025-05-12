@@ -1,7 +1,8 @@
 server_host="0.0.0.0:9090"
 env = "dev"
-assets_prefix = "/assets/"
 alarm_secret = ""
+dist_dir = "dist"
+assets_prefix = "/assets/"
 
 [Log]
 debug=true
@@ -10,6 +11,11 @@ filesize=256
 filename="run"
 level="DEBUG"
 dir="./log/{svr.name}"
+
+[V8vm]
+max_instances = 10
+instance_lifetime = 0
+xmlhttprequest_threads = 200
 
 [Proxy]
 [[Proxy.location]]

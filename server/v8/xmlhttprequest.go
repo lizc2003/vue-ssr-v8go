@@ -36,20 +36,22 @@ type xmlHttpRequestMgr struct {
 	maxId int
 }
 
-func NewXmlHttpRequestMgr(maxThreadCount int32, c *XhrConfig) *xmlHttpRequestMgr {
-	if maxThreadCount > MaxXhrThreadCount {
-		maxThreadCount = MaxXhrThreadCount
+func NewXmlHttpRequestMgr(xhrThreads int32, c *XhrConfig) *xmlHttpRequestMgr {
+	if xhrThreads < MinXhrThreads {
+		xhrThreads = MinXhrThreads
+	} else if xhrThreads > MaxXhrThreads {
+		xhrThreads = MaxXhrThreads
 	}
 
 	httpClient := newHttpClient()
-	queue := make(chan *xhrCmd, maxThreadCount*2)
+	queue := make(chan *xhrCmd, xhrThreads*2)
 	reqs := make(map[int]*xhrCmd)
 	mgr := &xmlHttpRequestMgr{
 		queue: queue,
 		reqs:  reqs,
 	}
 
-	for i := int32(0); i < maxThreadCount; i++ {
+	for i := int32(0); i < xhrThreads; i++ {
 		go func() {
 			for req := range queue {
 				performXhr(req, httpClient, c)

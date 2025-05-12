@@ -8,7 +8,6 @@ import (
 )
 
 const (
-	DistPath     = "/dist/"
 	PublicPath   = "public"
 	ServerPath   = "server"
 	IndexName    = "index.html"
@@ -30,10 +29,21 @@ var (
 	}
 )
 
-func getDistPath() string {
-	basepath, err := filepath.Abs(filepath.Dir(os.Args[0]))
-	if err != nil {
-		return "." + DistPath
+func getDistPath(distDir string) (string, error) {
+	if distDir == "" {
+		return "", errors.New("empty dist dir")
 	}
-	return basepath + DistPath
+
+	if distDir[0] != '/' {
+		basepath, err := filepath.Abs(filepath.Dir(os.Args[0]))
+		if err != nil {
+			return "", err
+		}
+		distDir = basepath + "/" + distDir
+	}
+	if distDir[len(distDir)-1] != '/' {
+		distDir += "/"
+	}
+
+	return distDir, nil
 }

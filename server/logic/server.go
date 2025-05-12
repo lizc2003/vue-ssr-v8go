@@ -13,10 +13,11 @@ import (
 type Config struct {
 	Host         string       `toml:"server_host"`
 	Env          string       `toml:"env"`
-	Log          tlog.Config  `toml:"Log"`
 	AlarmSecret  string       `toml:"alarm_secret"`
+	DistDir      string       `toml:"dist_dir"`
 	AssetsPrefix string       `toml:"assets_prefix"`
-	VmConfig     v8.VmConfig  `toml:"Vm"`
+	Log          tlog.Config  `toml:"Log"`
+	VmConfig     v8.VmConfig  `toml:"V8vm"`
 	XhrConfig    v8.XhrConfig `toml:"Xhr"`
 	Proxy        ProxyConfig  `toml:"Proxy"`
 }
@@ -39,9 +40,14 @@ func RunServer(c *Config) {
 		return
 	}
 
-	distPath := getDistPath()
+	distPath, err := getDistPath(c.DistDir)
+	if err != nil {
+		tlog.Fatal(err.Error())
+		return
+	}
 	publicDir := distPath + PublicPath
 	serverDir := distPath + ServerPath
+	fmt.Println(distPath, publicDir, serverDir)
 
 	vmMgr, err := v8.NewVmMgr(c.Env, serverDir, SendEventCallback, &c.VmConfig, &c.XhrConfig)
 	if err != nil {
