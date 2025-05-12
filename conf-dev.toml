@@ -15,7 +15,7 @@ dir="./log/{svr.name}"
 [V8vm]
 max_instances = 10
 instance_lifetime = 0
-xmlhttprequest_threads = 200
+xmlhttprequest_threads = 20
 
 [Api]
 host = "ifconfig.me"
