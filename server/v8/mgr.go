@@ -31,7 +31,7 @@ type VmConfig struct {
 
 type VmMgr struct {
 	callback SendEventCallback
-	xhrMgr   *xmlHttpRequestMgr
+	xhrMgr   *XmlHttpRequestMgr
 	workers  chan *Worker
 
 	vmLifetime         int64
@@ -42,8 +42,13 @@ type VmMgr struct {
 
 var ThisVmMgr *VmMgr
 
-func NewVmMgr(env string, serverDir string, callback SendEventCallback, vc *VmConfig, xc *XhrConfig) (*VmMgr, error) {
+func NewVmMgr(env string, serverDir string, callback SendEventCallback, vc *VmConfig, ac *ApiConfig) (*VmMgr, error) {
 	err := initVm(env, serverDir)
+	if err != nil {
+		return nil, err
+	}
+
+	xhrMgr, err := NewXmlHttpRequestMgr(vc.XhrThreads, ac)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +70,7 @@ func NewVmMgr(env string, serverDir string, callback SendEventCallback, vc *VmCo
 	workers := make(chan *Worker, vmMaxInstances+100)
 	ThisVmMgr = &VmMgr{
 		callback:           callback,
-		xhrMgr:             NewXmlHttpRequestMgr(vc.XhrThreads, xc),
+		xhrMgr:             xhrMgr,
 		workers:            workers,
 		vmLifetime:         int64(vmLifetime),
 		vmMaxInstances:     vmMaxInstances,

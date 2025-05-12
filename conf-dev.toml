@@ -17,6 +17,10 @@ max_instances = 10
 instance_lifetime = 0
 xmlhttprequest_threads = 200
 
+[Api]
+host = "ifconfig.me"
+target = "https://ifconfig.me"
+
 [Proxy]
 [[Proxy.location]]
 path = "/api/ifconfig"

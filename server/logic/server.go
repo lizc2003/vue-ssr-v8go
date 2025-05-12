@@ -18,7 +18,7 @@ type Config struct {
 	AssetsPrefix string       `toml:"assets_prefix"`
 	Log          tlog.Config  `toml:"Log"`
 	VmConfig     v8.VmConfig  `toml:"V8vm"`
-	XhrConfig    v8.XhrConfig `toml:"Xhr"`
+	ApiConfig    v8.ApiConfig `toml:"Api"`
 	Proxy        ProxyConfig  `toml:"Proxy"`
 }
 
@@ -47,9 +47,8 @@ func RunServer(c *Config) {
 	}
 	publicDir := distPath + PublicPath
 	serverDir := distPath + ServerPath
-	fmt.Println(distPath, publicDir, serverDir)
 
-	vmMgr, err := v8.NewVmMgr(c.Env, serverDir, SendEventCallback, &c.VmConfig, &c.XhrConfig)
+	vmMgr, err := v8.NewVmMgr(c.Env, serverDir, SendEventCallback, &c.VmConfig, &c.ApiConfig)
 	if err != nil {
 		tlog.Fatal(err.Error())
 		return

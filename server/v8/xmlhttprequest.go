@@ -7,36 +7,48 @@ import (
 	"github.com/lizc2003/vue-ssr-v8go/server/common/tlog"
 	"io"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 )
 
-type XhrConfig struct {
-	Hosts []string
+type ApiConfig struct {
+	Host   string `toml:"host"`
+	Target string `toml:"target"`
 }
 
 type xhrCmd struct {
 	Cmd     string            `json:"cmd"`
 	XhrId   int               `json:"xhr_id"`
-	Url     string            `json:"url"`
+	XhrUrl  string            `json:"url"`
 	Method  string            `json:"method"`
 	Headers map[string]string `json:"headers"`
 	Post    string            `json:"post"`
 	Timeout int               `json:"timeout"`
+	reqUrl  *url.URL
 	worker  *Worker
 	aborted bool
 }
 
-type xmlHttpRequestMgr struct {
+type XmlHttpRequestMgr struct {
 	mutex sync.Mutex
 	queue chan *xhrCmd
 	reqs  map[int]*xhrCmd
 	maxId int
 }
 
-func NewXmlHttpRequestMgr(xhrThreads int32, c *XhrConfig) *xmlHttpRequestMgr {
+func NewXmlHttpRequestMgr(xhrThreads int32, c *ApiConfig) (*XmlHttpRequestMgr, error) {
+	var targetUrl *url.URL
+	if c.Target != "" {
+		var err error
+		targetUrl, err = url.Parse(c.Target)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	if xhrThreads < MinXhrThreads {
 		xhrThreads = MinXhrThreads
 	} else if xhrThreads > MaxXhrThreads {
@@ -46,7 +58,7 @@ func NewXmlHttpRequestMgr(xhrThreads int32, c *XhrConfig) *xmlHttpRequestMgr {
 	httpClient := newHttpClient()
 	queue := make(chan *xhrCmd, xhrThreads*2)
 	reqs := make(map[int]*xhrCmd)
-	mgr := &xmlHttpRequestMgr{
+	mgr := &XmlHttpRequestMgr{
 		queue: queue,
 		reqs:  reqs,
 	}
@@ -54,7 +66,7 @@ func NewXmlHttpRequestMgr(xhrThreads int32, c *XhrConfig) *xmlHttpRequestMgr {
 	for i := int32(0); i < xhrThreads; i++ {
 		go func() {
 			for req := range queue {
-				performXhr(req, httpClient, c)
+				performXhr(req, httpClient, c.Host, targetUrl)
 
 				mgr.mutex.Lock()
 				delete(mgr.reqs, req.XhrId)
@@ -62,10 +74,19 @@ func NewXmlHttpRequestMgr(xhrThreads int32, c *XhrConfig) *xmlHttpRequestMgr {
 			}
 		}()
 	}
-	return mgr
+	return mgr, nil
 }
 
-func (this *xmlHttpRequestMgr) open(req *xhrCmd) int {
+func (this *XmlHttpRequestMgr) Open(req *xhrCmd) int {
+	reqUrl, err := url.Parse(req.XhrUrl)
+	if err != nil {
+		return 0
+	}
+	if reqUrl.Scheme != "http" && reqUrl.Scheme != "https" {
+		return 0
+	}
+	req.reqUrl = reqUrl
+
 	this.mutex.Lock()
 	this.maxId++
 	req.XhrId = this.maxId
@@ -74,11 +95,11 @@ func (this *xmlHttpRequestMgr) open(req *xhrCmd) int {
 
 	beginTime := time.Now()
 	this.queue <- req
-	tlog.Infof("xhr %d: %s, wait time: %v", req.XhrId, req.Url, time.Since(beginTime))
+	tlog.Infof("xhr %d: %s, wait time: %v", req.XhrId, req.XhrUrl, time.Since(beginTime))
 	return req.XhrId
 }
 
-func (this *xmlHttpRequestMgr) abort(xhrId int) {
+func (this *XmlHttpRequestMgr) Abort(xhrId int) {
 	this.mutex.Lock()
 	if req, ok := this.reqs[xhrId]; ok {
 		req.aborted = true
@@ -86,7 +107,7 @@ func (this *xmlHttpRequestMgr) abort(xhrId int) {
 	this.mutex.Unlock()
 }
 
-func performXhr(req *xhrCmd, client *http.Client, c *XhrConfig) {
+func performXhr(req *xhrCmd, client *http.Client, apiHost string, targetUrl *url.URL) {
 	worker := req.worker
 	evt := xhrEvent{XhrId: req.XhrId}
 
@@ -98,13 +119,23 @@ func performXhr(req *xhrCmd, client *http.Client, c *XhrConfig) {
 	evt.Event = "onstart"
 	sendXhrEvent(worker, &evt)
 
-	url := req.Url
+	var reqHost string
+	isApi := false
+	reqURL := req.reqUrl
+	if reqURL.Host == apiHost {
+		isApi = true
+		reqHost = reqURL.Host
+		reqURL.Scheme = targetUrl.Scheme
+		reqURL.Host = targetUrl.Host
+	}
+	requestUrl := reqURL.String()
+
 	var request *http.Request
 	var err error
 	if len(req.Post) == 0 {
-		request, err = http.NewRequest(req.Method, url, nil)
+		request, err = http.NewRequest(req.Method, requestUrl, nil)
 	} else {
-		request, err = http.NewRequest(req.Method, url, strings.NewReader(req.Post))
+		request, err = http.NewRequest(req.Method, requestUrl, strings.NewReader(req.Post))
 		if _, ok := req.Headers["Content-Type"]; !ok {
 			c := req.Post[0]
 			if c == '{' || c == '[' {
@@ -119,8 +150,9 @@ func performXhr(req *xhrCmd, client *http.Client, c *XhrConfig) {
 		return
 	}
 
-	// fixme
-	//request.Host = this.internalApiHost
+	if isApi {
+		request.Host = reqHost
+	}
 
 	for k, v := range req.Headers {
 		if k == "SSR-Headers" {
@@ -130,6 +162,9 @@ func performXhr(req *xhrCmd, client *http.Client, c *XhrConfig) {
 				if err == nil {
 					for kk, vv := range headers {
 						if vv != "" {
+							if kk == "Cookie" && !isApi {
+								continue
+							}
 							kk = strings.ReplaceAll(kk, "_", "-")
 							tlog.Debugf("ssr header %s: %s", kk, vv)
 							request.Header.Set(kk, vv)
@@ -156,7 +191,7 @@ func performXhr(req *xhrCmd, client *http.Client, c *XhrConfig) {
 		return
 	}
 	if resp == nil {
-		err = fmt.Errorf("response is nil: %s", url)
+		err = fmt.Errorf("response is nil: %s", requestUrl)
 		sendXhrErrorEvent(worker, &evt, err)
 		return
 	}
@@ -222,10 +257,10 @@ func handleXMLHttpRequestCmd(w *Worker, msg string) string {
 
 	switch req.Cmd {
 	case "open":
-		xhrId := ThisVmMgr.xhrMgr.open(&req)
+		xhrId := ThisVmMgr.xhrMgr.Open(&req)
 		return strconv.FormatInt(int64(xhrId), 10)
 	case "abort":
-		ThisVmMgr.xhrMgr.abort(req.XhrId)
+		ThisVmMgr.xhrMgr.Abort(req.XhrId)
 		return ""
 	}
 
