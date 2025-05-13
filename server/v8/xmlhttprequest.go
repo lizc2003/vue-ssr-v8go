@@ -2,6 +2,7 @@ package v8
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/alarm"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/tlog"
@@ -40,12 +41,16 @@ type XmlHttpRequestMgr struct {
 }
 
 func NewXmlHttpRequestMgr(xhrThreads int32, c *ApiConfig) (*XmlHttpRequestMgr, error) {
+	apiHost := c.Host
 	var targetUrl *url.URL
-	if c.Target != "" {
+	if apiHost != "" {
 		var err error
 		targetUrl, err = url.Parse(c.Target)
 		if err != nil {
 			return nil, err
+		}
+		if targetUrl.Scheme != "http" && targetUrl.Scheme != "https" {
+			return nil, errors.New("target url scheme must be http or https")
 		}
 	}
 
@@ -66,7 +71,7 @@ func NewXmlHttpRequestMgr(xhrThreads int32, c *ApiConfig) (*XmlHttpRequestMgr, e
 	for i := int32(0); i < xhrThreads; i++ {
 		go func() {
 			for req := range queue {
-				performXhr(req, httpClient, c.Host, targetUrl)
+				performXhr(req, httpClient, apiHost, targetUrl)
 
 				mgr.mutex.Lock()
 				delete(mgr.reqs, req.XhrId)
