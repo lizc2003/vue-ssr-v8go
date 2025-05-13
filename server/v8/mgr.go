@@ -17,11 +17,11 @@ const (
 	MinXhrThreads  = 10
 
 	VmDeleteDelayTime    = 150 * time.Second
-	VmAcquireTimeout     = 8 // seconds
+	VmAcquireTimeout     = 5 // seconds
 	ProcessExitThreshold = 1000
 )
 
-var ErrorNoVm = errors.New("The VM instance cannot be acquired.")
+var ErrorNoVm = errors.New("the v8 instance cannot be acquired.")
 
 type VmConfig struct {
 	MaxInstances     int32 `toml:"max_instances"`
@@ -106,7 +106,8 @@ func (this *VmMgr) acquireWorker() *Worker {
 	reqStartTime := time.Now().Unix()
 	for {
 		var ret *Worker
-		bNewFail := false
+		bNewFailed := false
+		bReachMax := false
 		select {
 		case worker := <-this.workers:
 			if worker.Acquire() {
@@ -124,19 +125,21 @@ func (this *VmMgr) acquireWorker() *Worker {
 					ret = worker
 				} else {
 					tlog.Error(err)
-					bNewFail = true
+					bNewFailed = true
 				}
 			} else {
-				bNewFail = true
+				bReachMax = true
 			}
 		}
 
-		if ret != nil {
+		if ret != nil || bNewFailed {
 			for _, w := range busyWorkers {
 				this.workers <- w
 			}
 			return ret
-		} else if bNewFail {
+		}
+
+		if bReachMax {
 			if len(busyWorkers) > 0 {
 				for _, w := range busyWorkers {
 					this.workers <- w
@@ -149,7 +152,7 @@ func (this *VmMgr) acquireWorker() *Worker {
 		if time.Now().Unix()-reqStartTime > VmAcquireTimeout {
 			failCount := atomic.AddInt32(&this.vmAcquireFailCount, 1)
 			if failCount >= ProcessExitThreshold {
-				errMsg := "Too many failures acquiring VM instance, exit!"
+				errMsg := "too many failures acquiring v8 instance, exit!"
 				tlog.Error(errMsg)
 				alarm.SendAlert(errMsg)
 				os.Exit(1)

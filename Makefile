@@ -1,13 +1,13 @@
-.PHONY: clean client server
+.PHONY: clean web server
 
-all: server client
+all: server web
 
 clean:
 	rm -rf ./dist
 	rm -f ./vue-ssr-v8go
 	go clean
 
-client:
+web:
 	cd frontend && npm run build
 
 server:

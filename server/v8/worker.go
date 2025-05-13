@@ -51,48 +51,54 @@ func NewWorker(callback SendEventCallback) (*Worker, error) {
 	v8ctx := v8go.NewContext(isolate)
 	inspector.ContextCreated(v8ctx)
 
-	script, err := isolate.CompileUnboundScript(gInitJs, gInitJsName, v8go.CompileOptions{CachedData: gInitJsCache})
-	if err != nil {
-		return nil, err
-	}
-	_, err = script.Run(v8ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	if gServerJsCache != nil {
-		script, err = isolate.CompileUnboundScript(gServerJs, gServerJsName, v8go.CompileOptions{CachedData: gServerJsCache})
-		if err != nil {
-			return nil, err
-		}
-		_, err = script.Run(v8ctx)
-		if err != nil {
-			return nil, err
-		}
-	} else if gServerFileName != "" {
-		content, err := os.ReadFile(gServerFileName)
-		if err != nil {
-			return nil, err
-		}
-		_, err = v8ctx.RunScript(util.UnsafeBytes2Str(content), gServerJsName)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	w := &Worker{
+	worker := &Worker{
 		isolate:         isolate,
 		inspectorClient: client,
 		inspector:       inspector,
 		v8ctx:           v8ctx,
 		callback:        callback,
 	}
-	err = setFunctionCallback(w)
+
+	script, err := isolate.CompileUnboundScript(gInitJs, gInitJsName, v8go.CompileOptions{CachedData: gInitJsCache})
 	if err != nil {
-		return nil, err
+		goto ERROR
+	}
+	_, err = script.Run(v8ctx)
+	if err != nil {
+		goto ERROR
 	}
 
-	return w, nil
+	if gServerJsCache != nil {
+		script, err = isolate.CompileUnboundScript(gServerJs, gServerJsName, v8go.CompileOptions{CachedData: gServerJsCache})
+		if err != nil {
+			goto ERROR
+		}
+		_, err = script.Run(v8ctx)
+		if err != nil {
+			goto ERROR
+		}
+	} else if gServerFileName != "" {
+		var content []byte
+		content, err = os.ReadFile(gServerFileName)
+		if err != nil {
+			goto ERROR
+		}
+		_, err = v8ctx.RunScript(util.UnsafeBytes2Str(content), gServerJsName)
+		if err != nil {
+			goto ERROR
+		}
+	}
+
+	err = setFunctionCallback(worker)
+	if err != nil {
+		goto ERROR
+	}
+
+	return worker, nil
+
+ERROR:
+	worker.Dispose()
+	return nil, ToJsError(err)
 }
 
 func (this *Worker) Dispose() {
