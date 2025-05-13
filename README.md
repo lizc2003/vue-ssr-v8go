@@ -1,4 +1,4 @@
-# Vue SSR Powered By V8go
+# Vue SSR powered by v8go
 
 A High-performance Server-side Rendering (SSR) Framework for Vue Apps, Powered by V8 and Golang.
 
@@ -27,7 +27,7 @@ Pros:
 - No need to use Node.js; powered by V8 and Golang.
 - Features a thread-safe V8 isolate scheduler with dynamic pool sizing (5-1000+ isolates).
 - Prevents memory leaks via lifecycle-controlled isolation (0-3600s+).
-- An enhanced and optimized XMLHttpRequest is implemented, with setTimeout and setInterval removed, thereby improving SSR.
+- An enhanced and optimized XMLHttpRequest is implemented, with setTimeout and setInterval removed, thus bettering SSR.
 
 Cons:
 - You can't use Vite features like hot module replacement (HMR), but you can run `npm run watch` to build on-the-fly JavaScript scripts.
