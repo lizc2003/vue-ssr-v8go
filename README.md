@@ -24,9 +24,9 @@ curl http://localhost:9090/test
 ## Pros and Cons
 
 Pros:
-- No need to use Node.js; powered by V8 and Golang.
-- Features a thread-safe V8 isolate scheduler with dynamic pool sizing (5-1000+ isolates).
-- Prevents memory leaks via lifecycle-controlled isolation (0-3600s+).
+- No need to use Node.js, powered by V8 and Golang.
+- Thread-safe V8 scheduler with dynamic scaling (5-1000+ isolates)
+- Prevents memory leaks via lifetime-controlled isolation (0-3600s+).
 - An enhanced and optimized XMLHttpRequest is implemented, with setTimeout and setInterval removed, thus bettering SSR.
 
 Cons:
