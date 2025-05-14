@@ -1,4 +1,4 @@
-server_host="0.0.0.0:9090"
+server_host="0.0.0.0:9191"
 env = "dev"
 alarm_secret = ""
 dist_dir = "dist"
