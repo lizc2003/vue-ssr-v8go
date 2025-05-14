@@ -2,7 +2,7 @@ package v8
 
 import (
 	"errors"
-	"github.com/tommie/v8go"
+	"github.com/lizc2003/v8go"
 	"net"
 	"net/http"
 	"time"

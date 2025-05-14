@@ -3,9 +3,9 @@ package v8
 import "C"
 import (
 	"encoding/json"
+	"github.com/lizc2003/v8go"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/tlog"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/util"
-	"github.com/tommie/v8go"
 	"os"
 	"strings"
 	"sync"

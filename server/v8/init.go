@@ -1,9 +1,9 @@
 package v8
 
 import (
+	"github.com/lizc2003/v8go"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/defs"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/util"
-	"github.com/tommie/v8go"
 	"os"
 	"strings"
 )
