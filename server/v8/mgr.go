@@ -24,6 +24,7 @@ const (
 var ErrorNoVm = errors.New("the v8 instance cannot be acquired.")
 
 type VmConfig struct {
+	UseStrict        bool  `toml:"use_strict"`
 	MaxInstances     int32 `toml:"max_instances"`
 	InstanceLifetime int32 `toml:"instance_lifetime"`
 	XhrThreads       int32 `toml:"xmlhttprequest_threads"`
@@ -43,7 +44,7 @@ type VmMgr struct {
 var ThisVmMgr *VmMgr
 
 func NewVmMgr(env string, serverDir string, callback SendEventCallback, vc *VmConfig, ac *ApiConfig) (*VmMgr, error) {
-	err := initVm(env, serverDir)
+	err := initVm(env, serverDir, vc.UseStrict)
 	if err != nil {
 		return nil, err
 	}

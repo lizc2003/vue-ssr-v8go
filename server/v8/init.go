@@ -19,7 +19,13 @@ const (
 	gServerJsName = "server.js"
 )
 
-func initVm(env string, serverDir string) error {
+func initVm(env string, serverDir string, useStrict bool) error {
+	if useStrict {
+		v8go.SetFlags("--use_strict")
+	} else {
+		v8go.SetFlags("--nouse_strict")
+	}
+
 	bDev := false
 	nodeEnv := "production"
 	if env == defs.EnvDev {

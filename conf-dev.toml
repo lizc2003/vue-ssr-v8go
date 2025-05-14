@@ -14,6 +14,7 @@ level="DEBUG"
 dir="./log/{svr.name}"
 
 [V8vm]
+use_strict = true
 max_instances = 10
 instance_lifetime = 0
 xmlhttprequest_threads = 20
