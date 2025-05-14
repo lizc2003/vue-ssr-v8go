@@ -38,8 +38,8 @@ const goToHome = () => {
 
 try {
   useAsyncData(counter, 'ip', apiTest)
-} catch (error) {
-  console.error('useAsyncData fail:', error)
+} catch (err) {
+  console.error('useAsyncData fail:', err.stack)
 }
 
 </script>

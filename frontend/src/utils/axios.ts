@@ -26,9 +26,9 @@ export function createAxiosInstance(ssrCtx?: any) {
       }
       return res;
     },
-    (error) => {
-      console.error("axios response error:", error);
-      return Promise.reject(error);
+    (err) => {
+      console.error("axios response error:", err.stack);
+      return Promise.reject(err);
     }
   );
 
