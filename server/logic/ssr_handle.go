@@ -81,7 +81,7 @@ func ssrRender(url string, ssrHeaders map[string]string) (RenderResult, error) {
 			if !req.bOK {
 				err = errors.New(req.result.Html)
 			}
-		case <-time.After(RenderTimeout):
+		case <-time.After(ThisServer.SsrTime):
 			err = ErrorRenderTimeout
 		}
 	}

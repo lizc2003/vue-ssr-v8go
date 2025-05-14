@@ -84,12 +84,11 @@ func NewXmlHttpRequestMgr(xhrThreads int32, c *ApiConfig) (*XmlHttpRequestMgr, e
 
 func (this *XmlHttpRequestMgr) Open(req *xhrCmd) int {
 	reqUrl, err := url.Parse(req.XhrUrl)
-	if err != nil {
+	if err != nil || (reqUrl.Scheme != "http" && reqUrl.Scheme != "https") {
+		tlog.Errorf("invalid xhr url: %s", req.XhrUrl)
 		return 0
 	}
-	if reqUrl.Scheme != "http" && reqUrl.Scheme != "https" {
-		return 0
-	}
+
 	req.reqUrl = reqUrl
 
 	this.mutex.Lock()

@@ -3,6 +3,7 @@ env = "prod"
 alarm_secret = ""
 dist_dir = "dist"
 assets_prefix = "/assets/"
+ssr_timeout = 15
 
 [Log]
 debug=false

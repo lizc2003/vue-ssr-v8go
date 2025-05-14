@@ -4,7 +4,6 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
-	"time"
 )
 
 const (
@@ -13,8 +12,6 @@ const (
 	IndexName    = "index.html"
 	NotfoundName = "404.html"
 	ManifestName = ".vite/ssr-manifest.json"
-
-	RenderTimeout = 15 * time.Second
 )
 
 var (
