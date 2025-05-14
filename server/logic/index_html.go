@@ -1,6 +1,8 @@
 package logic
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/defs"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/tlog"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/util"
@@ -15,7 +17,7 @@ type IndexHtml struct {
 	metaBegin     int
 	metaEnd       int
 	notfoundHtml  string
-	SsrManifest   string
+	ssrManifest   map[string][]string
 }
 
 func NewIndexHtml(env string, publicDir string) (*IndexHtml, error) {
@@ -40,10 +42,25 @@ func NewIndexHtml(env string, publicDir string) (*IndexHtml, error) {
 		notfoundHtml = `<!DOCTYPE html><html lang="en"><head></head><body><h1>Page Not Found</h1></body></html>`
 	}
 
-	var manifest string
+	var manifest map[string][]string
 	content, err = os.ReadFile(publicDir + "/" + ManifestName)
 	if err == nil {
-		manifest = string(content)
+		var mfs map[string]any
+		err = json.Unmarshal(content, &mfs)
+		if err == nil {
+			manifest = make(map[string][]string, len(mfs))
+			for k, v := range mfs {
+				if arr, ok := v.([]any); ok {
+					var files []string
+					for _, v2 := range arr {
+						if str, ok := v2.(string); ok {
+							files = append(files, str)
+						}
+					}
+					manifest[k] = files
+				}
+			}
+		}
 	}
 
 	return &IndexHtml{
@@ -52,7 +69,7 @@ func NewIndexHtml(env string, publicDir string) (*IndexHtml, error) {
 		metaBegin:     metaBegin,
 		metaEnd:       metaEnd,
 		notfoundHtml:  notfoundHtml,
-		SsrManifest:   manifest,
+		ssrManifest:   manifest,
 	}, nil
 }
 
@@ -79,8 +96,11 @@ func (this *IndexHtml) GetIndexHtml(result RenderResult, renderErr error) (int, 
 			sb.WriteString(s2)
 			indexHtml = sb.String()
 		}
-		if result.PreloadLinks != "" {
-			indexHtml = strings.Replace(indexHtml, "<!--preload-links-->", result.PreloadLinks, 1)
+		if result.Modules != "" {
+			preloadLinks := this.getPreloadLinks(result.Modules)
+			if preloadLinks != "" {
+				indexHtml = strings.Replace(indexHtml, "<!--preload-links-->", preloadLinks, 1)
+			}
 		}
 		if result.State != "" {
 			state := "window.__INITIAL_STATE__ = " + result.State
@@ -115,4 +135,64 @@ func getMetaPosition(indexHtml string) (int, int) {
 
 	metaEnd += metaBegin + 1
 	return metaBegin, metaEnd + 15
+}
+
+func (this *IndexHtml) getPreloadLinks(_modules string) string {
+	var modules []string
+	err := json.Unmarshal(util.UnsafeStr2Bytes(_modules), &modules)
+	if err != nil {
+		tlog.Error(err)
+		return ""
+	}
+
+	var sb strings.Builder
+	var seen = make(map[string]bool)
+	for _, module := range modules {
+		if files, ok := this.ssrManifest[module]; ok {
+			for _, file := range files {
+				if !seen[file] {
+					seen[file] = true
+					if files2, ok := this.ssrManifest[basename(file)]; ok {
+						for _, depFile := range files2 {
+							sb.WriteString(renderPreloadLink(depFile))
+							seen[depFile] = true
+						}
+					}
+					sb.WriteString(renderPreloadLink(file))
+				}
+			}
+		}
+	}
+	return sb.String()
+}
+
+func renderPreloadLink(file string) string {
+	idx := strings.LastIndex(file, ".")
+	if idx <= 0 {
+		return ""
+	}
+
+	ext := file[idx+1:]
+	switch ext {
+	case "js":
+		return fmt.Sprintf(`<link rel="modulepreload" crossorigin href="%s">`, file)
+	case "css":
+		return fmt.Sprintf(`<link rel="stylesheet" href="%s">`, file)
+	case "woff":
+		return fmt.Sprintf(`<link rel="preload" href="%s" as="font" type="font/woff" crossorigin>`, file)
+	case "woff2":
+		return fmt.Sprintf(`<link rel="preload" href="%s" as="font" type="font/woff2" crossorigin>`, file)
+	case "gif":
+		return fmt.Sprintf(`<link rel="preload" href="%s" as="image" type="image/gif">`, file)
+	case "jpg", "jpeg":
+		return fmt.Sprintf(`<link rel="preload" href="%s" as="image" type="image/jpeg">`, file)
+	case "png":
+		return fmt.Sprintf(`<link rel="preload" href="%s" as="image" type="image/png">`, file)
+	default:
+		return ""
+	}
+}
+
+func basename(str string) string {
+	return str[strings.LastIndex(str, "/")+1:]
 }

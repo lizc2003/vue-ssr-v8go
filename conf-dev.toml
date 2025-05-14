@@ -20,8 +20,8 @@ instance_lifetime = 0
 xmlhttprequest_threads = 20
 
 [Api]
-host = "ifconfig.me"
-target = "https://ifconfig.me"
+hosts = ["ifconfig.me"]
+targets = ["https://ifconfig.me"]
 
 [Proxy]
 [[Proxy.location]]

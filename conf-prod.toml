@@ -20,5 +20,5 @@ instance_lifetime = 3600
 xmlhttprequest_threads = 1000
 
 [Api]
-host = "test.com"
-target = "http://127.0.0.1:5500"
+hosts = ["test.com"]
+targets = ["http://127.0.0.1:5500"]

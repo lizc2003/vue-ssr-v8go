@@ -16,8 +16,13 @@ import (
 )
 
 type ApiConfig struct {
-	Host   string `toml:"host"`
-	Target string `toml:"target"`
+	Hosts   []string `toml:"hosts"`
+	Targets []string `toml:"targets"`
+}
+
+type ApiHost struct {
+	Host      string
+	TargetUrl *url.URL
 }
 
 type xhrCmd struct {
@@ -41,17 +46,25 @@ type XmlHttpRequestMgr struct {
 }
 
 func NewXmlHttpRequestMgr(xhrThreads int32, c *ApiConfig) (*XmlHttpRequestMgr, error) {
-	apiHost := c.Host
-	var targetUrl *url.URL
-	if apiHost != "" {
+	if len(c.Hosts) != len(c.Targets) {
+		return nil, errors.New("hosts and targets count not match")
+	}
+
+	var apiHosts []*ApiHost
+	for i, host := range c.Hosts {
+		var targetUrl *url.URL
 		var err error
-		targetUrl, err = url.Parse(c.Target)
+		targetUrl, err = url.Parse(c.Targets[i])
 		if err != nil {
 			return nil, err
 		}
 		if targetUrl.Scheme != "http" && targetUrl.Scheme != "https" {
 			return nil, errors.New("target url scheme must be http or https")
 		}
+		apiHosts = append(apiHosts, &ApiHost{
+			Host:      host,
+			TargetUrl: targetUrl,
+		})
 	}
 
 	if xhrThreads < MinXhrThreads {
@@ -71,7 +84,7 @@ func NewXmlHttpRequestMgr(xhrThreads int32, c *ApiConfig) (*XmlHttpRequestMgr, e
 	for i := int32(0); i < xhrThreads; i++ {
 		go func() {
 			for req := range queue {
-				performXhr(req, httpClient, apiHost, targetUrl)
+				performXhr(req, httpClient, apiHosts)
 
 				mgr.mutex.Lock()
 				delete(mgr.reqs, req.XhrId)
@@ -111,7 +124,7 @@ func (this *XmlHttpRequestMgr) Abort(xhrId int) {
 	this.mutex.Unlock()
 }
 
-func performXhr(req *xhrCmd, client *http.Client, apiHost string, targetUrl *url.URL) {
+func performXhr(req *xhrCmd, client *http.Client, apiHosts []*ApiHost) {
 	worker := req.worker
 	evt := xhrEvent{XhrId: req.XhrId}
 
@@ -123,14 +136,17 @@ func performXhr(req *xhrCmd, client *http.Client, apiHost string, targetUrl *url
 	evt.Event = "onstart"
 	sendXhrEvent(worker, &evt)
 
-	var reqHost string
 	isApi := false
+	var reqHost string
 	reqURL := req.reqUrl
-	if reqURL.Host == apiHost {
-		isApi = true
-		reqHost = reqURL.Host
-		reqURL.Scheme = targetUrl.Scheme
-		reqURL.Host = targetUrl.Host
+	for _, host := range apiHosts {
+		if reqURL.Host == host.Host {
+			isApi = true
+			reqHost = reqURL.Host
+			reqURL.Scheme = host.TargetUrl.Scheme
+			reqURL.Host = host.TargetUrl.Host
+			break
+		}
 	}
 	requestUrl := reqURL.String()
 
