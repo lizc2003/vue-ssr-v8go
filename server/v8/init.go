@@ -20,11 +20,13 @@ const (
 )
 
 func initVm(env string, serverDir string, useStrict bool) error {
+	flags := []string{"--max-heap-size=8192"}
 	if useStrict {
-		v8go.SetFlags("--use_strict")
+		flags = append(flags, "--use_strict")
 	} else {
-		v8go.SetFlags("--nouse_strict")
+		flags = append(flags, "--nouse_strict")
 	}
+	v8go.SetFlags(flags...)
 
 	bDev := false
 	nodeEnv := "production"
