@@ -10,10 +10,10 @@ import (
 )
 
 const (
-	MaxVmInstances = 10000
+	MaxVmInstances = 2000
 	MinVmInstances = 5
 	MaxVmLiftTime  = 24 * 3600 // seconds
-	MaxXhrThreads  = 10000
+	MaxXhrThreads  = 4000
 	MinXhrThreads  = 10
 
 	VmDeleteDelayTime    = 150 * time.Second
