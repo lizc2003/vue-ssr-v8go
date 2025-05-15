@@ -185,7 +185,6 @@ func performXhr(req *xhrCmd, client *http.Client, apiHosts []*ApiHost) {
 							if kk == "Cookie" && !isApi {
 								continue
 							}
-							kk = strings.ReplaceAll(kk, "_", "-")
 							tlog.Debugf("ssr header %s: %s", kk, vv)
 							request.Header.Set(kk, vv)
 						}

@@ -26,7 +26,7 @@ func HandleSsrRequest(writer http.ResponseWriter, request *http.Request) {
 			v = util.GetClientIP(request)
 		}
 		if v != "" {
-			ssrHeaders[strings.ReplaceAll(k, "-", "_")] = v
+			ssrHeaders[k] = v
 		}
 	}
 
