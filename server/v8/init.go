@@ -20,7 +20,8 @@ const (
 )
 
 func initVm(env string, serverDir string, useStrict bool) error {
-	flags := []string{"--max-heap-size=8192"}
+	//flags := []string{"--max-heap-size=8192"}
+	flags := []string{}
 	if useStrict {
 		flags = append(flags, "--use_strict")
 	} else {
