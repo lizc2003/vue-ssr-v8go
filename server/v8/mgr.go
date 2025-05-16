@@ -92,7 +92,7 @@ func (this *VmMgr) Execute(code string, scriptName string) error {
 	}
 	err := w.Execute(code, scriptName)
 
-	//w.Execute(`console.debug(dumpObject(globalThis))`, "test.js")
+	// tlog.Debug(w.Execute(`console.debug(dumpObject(globalThis))`, "test.js"))
 
 	this.releaseWorker(w)
 
