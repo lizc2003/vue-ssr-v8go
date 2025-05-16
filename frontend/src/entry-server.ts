@@ -27,7 +27,10 @@ declare function dumpObject(obj: any): string;
   ctx.htmlMeta = headTags
   if (ctx.modules && ctx.modules.size > 0) {
     ctx.htmlModules = JSON.stringify([...ctx.modules])
+    ctx.modules = null
   }
+
+  store.state.value = {}
 
   return html
 }
