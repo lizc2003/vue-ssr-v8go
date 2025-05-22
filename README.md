@@ -28,10 +28,10 @@ Pros:
 - Thread-safe V8 scheduler with dynamic scaling (5-500+ isolates)
 - Prevents memory leaks via lifetime-controlled isolation (0-3600s+).
 - An enhanced and optimized XMLHttpRequest is implemented, with setTimeout and setInterval removed, thus bettering SSR.
+- Automatically fall back to client-side rendering when server-side rendering encounters an error.
 
 Cons:
 - You can't use Vite features like hot module replacement (HMR), but you can run `npm run watch` to build on-the-fly JavaScript scripts.
-
 
 
 ## Keynotes
