@@ -11,16 +11,15 @@ import (
 )
 
 type Config struct {
-	Host         string       `toml:"server_host"`
-	Env          string       `toml:"env"`
-	AlarmSecret  string       `toml:"alarm_secret"`
-	DistDir      string       `toml:"dist_dir"`
-	AssetsPrefix string       `toml:"assets_prefix"`
-	SsrTimeout   int          `toml:"ssr_timeout"`
-	Log          tlog.Config  `toml:"Log"`
-	VmConfig     v8.VmConfig  `toml:"V8vm"`
-	ApiConfig    v8.ApiConfig `toml:"Api"`
-	Proxy        ProxyConfig  `toml:"Proxy"`
+	Host        string       `toml:"server_host"`
+	Env         string       `toml:"env"`
+	AlarmSecret string       `toml:"alarm_secret"`
+	DistDir     string       `toml:"dist_dir"`
+	SsrTimeout  int          `toml:"ssr_timeout"`
+	Log         tlog.Config  `toml:"Log"`
+	VmConfig    v8.VmConfig  `toml:"V8vm"`
+	ApiConfig   v8.ApiConfig `toml:"Api"`
+	Proxy       ProxyConfig  `toml:"Proxy"`
 }
 
 type Server struct {
@@ -78,5 +77,5 @@ func RunServer(c *Config) {
 	fmt.Printf("At %s, the server was started on port %s.\n",
 		util.FormatTime(time.Now()),
 		strings.Split(c.Host, ":")[1])
-	util.GraceHttpServe(c.Host, GetHttpHandler(c.Env, publicDir, c.AssetsPrefix))
+	util.GraceHttpServe(c.Host, GetHttpHandler(c.Env, publicDir))
 }

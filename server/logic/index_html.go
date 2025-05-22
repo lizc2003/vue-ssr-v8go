@@ -12,64 +12,55 @@ import (
 )
 
 type IndexHtml struct {
-	indexFileName string
-	indexHtml     string
-	metaBegin     int
-	metaEnd       int
-	notfoundHtml  string
-	ssrManifest   map[string][]string
+	indexFileName    string
+	indexHtml        string
+	metaBegin        int
+	metaEnd          int
+	notfoundHtml     string
+	manifestFileName string
+	ssrManifest      map[string][]string
 }
 
 func NewIndexHtml(env string, publicDir string) (*IndexHtml, error) {
-	var indexHtml string
-	metaBegin := 0
-	metaEnd := 0
 	indexFileName := publicDir + "/" + IndexName
-	content, err := os.ReadFile(indexFileName)
+	indexContent, err := os.ReadFile(indexFileName)
 	if err != nil {
 		return nil, err
 	}
+
+	var indexHtml string
+	metaBegin := 0
+	metaEnd := 0
+
+	manifestFileName := publicDir + "/" + ManifestName
+	var ssrManifest map[string][]string
+
 	if env != defs.EnvDev {
-		indexHtml = string(content)
+		indexHtml = string(indexContent)
 		metaBegin, metaEnd = getMetaPosition(indexHtml)
+
+		ssrManifest = getRawManifest(manifestFileName)
+		if ssrManifest == nil {
+			ssrManifest = make(map[string][]string)
+		}
 	}
 
 	var notfoundHtml string
-	content, err = os.ReadFile(publicDir + "/" + NotfoundName)
+	content, err := os.ReadFile(publicDir + "/" + NotfoundName)
 	if err == nil {
 		notfoundHtml = string(content)
 	} else {
 		notfoundHtml = `<!DOCTYPE html><html lang="en"><head></head><body><h1>Page Not Found</h1></body></html>`
 	}
 
-	var manifest map[string][]string
-	content, err = os.ReadFile(publicDir + "/" + ManifestName)
-	if err == nil {
-		var mfs map[string]any
-		err = json.Unmarshal(content, &mfs)
-		if err == nil {
-			manifest = make(map[string][]string, len(mfs))
-			for k, v := range mfs {
-				if arr, ok := v.([]any); ok {
-					var files []string
-					for _, v2 := range arr {
-						if str, ok := v2.(string); ok {
-							files = append(files, str)
-						}
-					}
-					manifest[k] = files
-				}
-			}
-		}
-	}
-
 	return &IndexHtml{
-		indexFileName: indexFileName,
-		indexHtml:     indexHtml,
-		metaBegin:     metaBegin,
-		metaEnd:       metaEnd,
-		notfoundHtml:  notfoundHtml,
-		ssrManifest:   manifest,
+		indexFileName:    indexFileName,
+		indexHtml:        indexHtml,
+		metaBegin:        metaBegin,
+		metaEnd:          metaEnd,
+		notfoundHtml:     notfoundHtml,
+		manifestFileName: manifestFileName,
+		ssrManifest:      ssrManifest,
 	}, nil
 }
 
@@ -137,6 +128,36 @@ func getMetaPosition(indexHtml string) (int, int) {
 	return metaBegin, metaEnd + 15
 }
 
+func (this *IndexHtml) getSsrManifest() map[string][]string {
+	if this.ssrManifest != nil {
+		return this.ssrManifest
+	}
+	return getRawManifest(this.manifestFileName)
+}
+
+func getRawManifest(fileName string) map[string][]string {
+	var manifest map[string][]string
+	content, err := os.ReadFile(fileName)
+	if err == nil {
+		var mfs map[string]any
+		err = json.Unmarshal(content, &mfs)
+		if err == nil {
+			manifest = make(map[string][]string, len(mfs))
+			for k, v := range mfs {
+				if arr, ok := v.([]any); ok {
+					var files []string
+					for _, v2 := range arr {
+						if str, ok := v2.(string); ok {
+							files = append(files, str)
+						}
+					}
+					manifest[k] = files
+				}
+			}
+		}
+	}
+	return manifest
+}
 func (this *IndexHtml) getPreloadLinks(_modules string) string {
 	var modules []string
 	err := json.Unmarshal(util.UnsafeStr2Bytes(_modules), &modules)
@@ -145,14 +166,19 @@ func (this *IndexHtml) getPreloadLinks(_modules string) string {
 		return ""
 	}
 
+	manifest := this.getSsrManifest()
+	if len(manifest) == 0 {
+		return ""
+	}
+
 	var sb strings.Builder
 	var seen = make(map[string]bool)
 	for _, module := range modules {
-		if files, ok := this.ssrManifest[module]; ok {
+		if files, ok := manifest[module]; ok {
 			for _, file := range files {
 				if !seen[file] {
 					seen[file] = true
-					if files2, ok := this.ssrManifest[basename(file)]; ok {
+					if files2, ok := manifest[basename(file)]; ok {
 						for _, depFile := range files2 {
 							sb.WriteString(renderPreloadLink(depFile))
 							seen[depFile] = true

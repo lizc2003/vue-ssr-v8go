@@ -2,7 +2,6 @@ server_host="0.0.0.0:9191"
 env = "prod"
 alarm_secret = ""
 dist_dir = "dist"
-assets_prefix = "/assets/"
 ssr_timeout = 15
 
 [Log]
