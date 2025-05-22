@@ -165,6 +165,9 @@ func (this *IndexHtml) getPreloadLinks(_modules string) string {
 		tlog.Error(err)
 		return ""
 	}
+	if len(modules) == 0 {
+		return ""
+	}
 
 	manifest := this.getSsrManifest()
 	if len(manifest) == 0 {
