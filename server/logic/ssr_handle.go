@@ -44,7 +44,7 @@ func HandleSsrRequest(writer http.ResponseWriter, request *http.Request) {
 		} else if err == ErrorPageNotFound {
 			tlog.Infof("request finish: %s, elapse: %v, page not found", url, elapse)
 		} else {
-			tlog.Infof("request finish: %s, elapse: %v, ssr error: %v", url, elapse, err)
+			tlog.Errorf("request finish: %s, elapse: %v, ssr error: %v", url, elapse, err)
 		}
 	} else {
 		tlog.Infof("request finish: %s, elapse: %v", url, elapse)
