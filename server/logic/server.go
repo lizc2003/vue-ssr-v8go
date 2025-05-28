@@ -13,6 +13,7 @@ import (
 type Config struct {
 	Host        string       `toml:"server_host"`
 	Env         string       `toml:"env"`
+	AlarmUrl    string       `toml:"alarm_url"`
 	AlarmSecret string       `toml:"alarm_secret"`
 	DistDir     string       `toml:"dist_dir"`
 	SsrTimeout  int          `toml:"ssr_timeout"`
@@ -31,8 +32,8 @@ type Server struct {
 var ThisServer *Server
 
 func RunServer(c *Config) {
-	if c.AlarmSecret != "" {
-		alarm.NewDefaultRobotFeiShu(c.AlarmSecret)
+	if c.AlarmUrl != "" && c.AlarmSecret != "" {
+		alarm.NewDefaultRobot(c.AlarmUrl, c.AlarmSecret)
 	}
 
 	err := InitReverseProxy(c.Proxy.Locations)

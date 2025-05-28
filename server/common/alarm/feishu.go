@@ -20,12 +20,8 @@ import (
 
 var gFeishuRobot *RobotFeiShu
 
-func NewDefaultRobotFeiShu(secret string) {
-	var defaultFeiShuUrl string
-	var defaultFeiShuSecret string
-	defaultFeiShuUrl = "https://open.feishu.cn/open-apis/bot/v2/hook/3422aa33-6033-48ab-91b0-a8916bbadc02"
-	defaultFeiShuSecret = secret
-	gFeishuRobot = NewRobotFeiShu(defs.EnvProd, defs.App, defaultFeiShuUrl, defaultFeiShuSecret, "", "")
+func NewDefaultRobot(url, secret string) {
+	gFeishuRobot = NewRobotFeiShu(defs.EnvProd, defs.App, url, secret, "", "")
 }
 
 func SendAlert(msg string) {

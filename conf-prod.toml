@@ -1,8 +1,9 @@
 server_host="0.0.0.0:9191"
 env = "prod"
-alarm_secret = ""
 dist_dir = "dist"
 ssr_timeout = 15
+alarm_url = ""
+alarm_secret = ""
 
 [Log]
 debug=false
