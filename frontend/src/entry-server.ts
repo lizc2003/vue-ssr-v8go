@@ -7,7 +7,6 @@ declare function dumpObject(obj: any): string;
 
 (globalThis as any).v8goRenderToString = async function (ctx: any) {
   const { app, router, store, head } = makeApp()
-  app.config.globalProperties.$fetchFn = createAxiosInstance(ctx)
 
   await router.push(ctx.url)
   await router.isReady();
@@ -19,6 +18,8 @@ declare function dumpObject(obj: any): string;
   if (router.currentRoute.value.meta?.ssrOff) {
     throw new Error("ssr-off");
   }
+
+  app.config.globalProperties.$fetchFn = createAxiosInstance(ctx)
 
   const html = await renderToString(app, ctx)
   const {headTags} = await renderSSRHead(head)
