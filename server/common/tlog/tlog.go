@@ -1,7 +1,6 @@
 package tlog
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"path"
@@ -22,10 +21,6 @@ type Config struct {
 
 var stdLogger = newLogger(&Config{Debug: true}, defaultServerName)
 var gLogger = stdLogger
-
-func TraceAndSpanIdFromContext(ctx context.Context) (string, string) {
-	return "", ""
-}
 
 func (c *Config) check(serverName string, suffix string) {
 	if c.FileSize == 0 {
@@ -89,87 +84,48 @@ func Level() LEVEL {
 	return gLogger.getLevel()
 }
 
-func Log(level LEVEL, args ...interface{}) {
-	gLogger.p(level, nil, args...)
-}
-
-func Logf(level LEVEL, format string, args ...interface{}) {
-	gLogger.pf(level, nil, format, args...)
+func Log(level LEVEL, file string, line string, msg string) {
+	gLogger.pWithFileAndLine(level, file, line, msg)
 }
 
 func Debug(args ...interface{}) {
-	gLogger.p(DEBUG, nil, args...)
+	gLogger.p(DEBUG, args...)
 }
 
 func Debugf(format string, args ...interface{}) {
-	gLogger.pf(DEBUG, nil, format, args...)
+	gLogger.pf(DEBUG, format, args...)
 }
 
 func Info(args ...interface{}) {
-	gLogger.p(INFO, nil, args...)
+	gLogger.p(INFO, args...)
 }
 
 func Infof(format string, args ...interface{}) {
-	gLogger.pf(INFO, nil, format, args...)
+	gLogger.pf(INFO, format, args...)
 }
 
 func Warn(args ...interface{}) {
-	gLogger.p(WARN, nil, args...)
+	gLogger.p(WARN, args...)
 }
 
 func Warnf(format string, args ...interface{}) {
-	gLogger.pf(WARN, nil, format, args...)
+	gLogger.pf(WARN, format, args...)
 }
 
 func Error(args ...interface{}) {
-	gLogger.p(ERROR, nil, args...)
+	gLogger.p(ERROR, args...)
 }
 
 func Errorf(format string, args ...interface{}) {
-	gLogger.pf(ERROR, nil, format, args...)
+	gLogger.pf(ERROR, format, args...)
 }
 
 func Fatal(args ...interface{}) {
-	gLogger.p(FATAL, nil, args...)
+	gLogger.p(FATAL, args...)
 	panic(fmt.Sprint(args...))
 }
 
 func Fatalf(format string, args ...interface{}) {
-	gLogger.pf(FATAL, nil, format, args...)
+	gLogger.pf(FATAL, format, args...)
 	panic(fmt.Sprintf(format, args...))
-}
-
-func TraceDebug(ctx context.Context, format string, args ...any) {
-	traceID, spanID := TraceAndSpanIdFromContext(ctx)
-	gLogger.pTrace(DEBUG, traceID, spanID, nil, format, args...)
-}
-
-func TraceInfo(ctx context.Context, format string, args ...any) {
-	traceID, spanID := TraceAndSpanIdFromContext(ctx)
-	gLogger.pTrace(INFO, traceID, spanID, nil, format, args...)
-}
-
-func TraceWarn(ctx context.Context, format string, args ...any) {
-	traceID, spanID := TraceAndSpanIdFromContext(ctx)
-	gLogger.pTrace(WARN, traceID, spanID, nil, format, args...)
-}
-
-func TraceError(ctx context.Context, format string, args ...any) {
-	traceID, spanID := TraceAndSpanIdFromContext(ctx)
-	gLogger.pTrace(ERROR, traceID, spanID, nil, format, args...)
-}
-
-func WithFields(fields Fields) FieldsEntry {
-	return FieldsEntry{data: fields}
-}
-
-func WithField(k string, v any) FieldsEntry {
-	return FieldsEntry{data: Fields{k: v}}
-}
-
-type IoWriter struct{}
-
-func (io *IoWriter) Write(p []byte) (n int, err error) {
-	gLogger.p(INFO, nil, "gin log:", string(p))
-	return len(p), nil
 }

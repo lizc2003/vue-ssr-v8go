@@ -3,7 +3,6 @@ package tlog
 import (
 	"bytes"
 	"encoding/json"
-	"strconv"
 	"unsafe"
 )
 
@@ -37,29 +36,8 @@ func (l *Logger) makeJsonLog(w *bytes.Buffer, msg *Msg) []byte {
 
 	w.WriteString(",\"line\":")
 	w.WriteByte('"')
-	w.WriteString(strconv.FormatInt(int64(msg.line), 10))
+	w.WriteString(msg.line)
 	w.WriteByte('"')
-
-	if len(msg.traceId) > 0 {
-		w.WriteString(",\"trace_id\":")
-		w.WriteByte('"')
-		w.WriteString(msg.traceId)
-		w.WriteByte('"')
-
-		if len(msg.spanId) > 0 {
-			w.WriteString(",\"span_id\":")
-			w.WriteByte('"')
-			w.WriteString(msg.spanId)
-			w.WriteByte('"')
-		}
-	}
-
-	for _, f := range msg.fields {
-		w.WriteString(",\"")
-		w.WriteString(f.key)
-		w.WriteString("\":")
-		w.Write(f.value)
-	}
 
 	if len(msg.msg) > 0 {
 		w.WriteString(",\"msg\":")
@@ -73,4 +51,8 @@ func (l *Logger) makeJsonLog(w *bytes.Buffer, msg *Msg) []byte {
 
 func unsafeBytes2Str(b []byte) string {
 	return unsafe.String(unsafe.SliceData(b), len(b))
+}
+
+func unsafeStr2Bytes(s string) []byte {
+	return unsafe.Slice(unsafe.StringData(s), len(s))
 }

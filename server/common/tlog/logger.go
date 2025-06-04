@@ -33,13 +33,10 @@ type Logger struct {
 }
 
 type Msg struct {
-	line    int
-	file    string
-	level   LEVEL
-	msg     []byte
-	fields  []field
-	traceId string
-	spanId  string
+	line  string
+	file  string
+	level LEVEL
+	msg   []byte
 }
 
 type field struct {
@@ -184,7 +181,19 @@ func (l *Logger) makeOldName() string {
 	return fmt.Sprintf("%s.%s", l.fileName, tt)
 }
 
-func (l *Logger) p(level LEVEL, fields []field, args ...interface{}) {
+func (l *Logger) pWithFileAndLine(level LEVEL, file string, line string, msg string) {
+	if level >= l.level {
+		b := []byte(msg)
+		m := &Msg{file: file, line: line, level: level, msg: b}
+
+		select {
+		case l.queue <- m:
+		default:
+		}
+	}
+}
+
+func (l *Logger) p(level LEVEL, args ...interface{}) {
 	if level >= l.level {
 		file, line := getFileNameAndLine()
 		var w bytes.Buffer
@@ -193,7 +202,7 @@ func (l *Logger) p(level LEVEL, fields []field, args ...interface{}) {
 			w.WriteByte(' ')
 		}
 		b := w.Bytes()
-		m := &Msg{file: file, line: line, level: level, msg: b, fields: fields}
+		m := &Msg{file: file, line: line, level: level, msg: b}
 
 		select {
 		case l.queue <- m:
@@ -202,28 +211,13 @@ func (l *Logger) p(level LEVEL, fields []field, args ...interface{}) {
 	}
 }
 
-func (l *Logger) pf(level LEVEL, fields []field, format string, args ...interface{}) {
+func (l *Logger) pf(level LEVEL, format string, args ...interface{}) {
 	if level >= l.level {
 		file, line := getFileNameAndLine()
 		var w bytes.Buffer
 		fmt.Fprintf(&w, format, args...)
 		b := w.Bytes()
-		m := &Msg{file: file, line: line, level: level, msg: b, fields: fields}
-
-		select {
-		case l.queue <- m:
-		default:
-		}
-	}
-}
-
-func (l *Logger) pTrace(level LEVEL, traceId string, spanId string, fields []field, format string, args ...interface{}) {
-	if level >= l.level {
-		file, line := getFileNameAndLine()
-		var w bytes.Buffer
-		fmt.Fprintf(&w, format, args...)
-		b := w.Bytes()
-		m := &Msg{file: file, line: line, level: level, msg: b, fields: fields, traceId: traceId, spanId: spanId}
+		m := &Msg{file: file, line: line, level: level, msg: b}
 
 		select {
 		case l.queue <- m:
@@ -247,26 +241,8 @@ func (l *Logger) makeLog(w *bytes.Buffer, msg *Msg) []byte {
 	w.WriteByte(' ')
 	w.WriteString(msg.file)
 	w.WriteByte(':')
-	w.WriteString(strconv.FormatInt(int64(msg.line), 10))
+	w.WriteString(msg.line)
 	w.WriteByte(' ')
-
-	if len(msg.traceId) > 0 {
-		w.WriteString("trace_id: ")
-		w.WriteString(msg.traceId)
-		w.WriteByte(' ')
-		if len(msg.spanId) > 0 {
-			w.WriteString("span_id: ")
-			w.WriteString(msg.spanId)
-			w.WriteByte(' ')
-		}
-	}
-
-	for _, f := range msg.fields {
-		w.WriteString(f.key)
-		w.WriteByte('=')
-		w.Write(f.value)
-		w.WriteByte(' ')
-	}
 
 	if l.level > DEBUG {
 		w.Write(bytes.ReplaceAll(msg.msg, []byte{'\n'}, []byte{' '}))
@@ -306,15 +282,15 @@ func (l *Logger) genTime() []byte {
 		byte(second/10) + 48, byte(second%10) + 48}, l.timeOffset...)
 }
 
-func getFileNameAndLine() (string, int) {
+func getFileNameAndLine() (string, string) {
 	_, file, line, ok := runtime.Caller(3)
 	if !ok {
-		return "???", 0
+		return "???", "0"
 	}
 	dirs := strings.Split(file, "/")
 	sz := len(dirs)
 	if sz >= 2 {
-		return dirs[sz-2] + "/" + dirs[sz-1], line
+		file = dirs[sz-2] + "/" + dirs[sz-1]
 	}
-	return file, line
+	return file, strconv.FormatInt(int64(line), 10)
 }
