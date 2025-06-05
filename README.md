@@ -46,3 +46,4 @@ SSR config builds the frontend application with target `webworker` as it is requ
 See:
 - Client-side entry: [`frontend/src/entry-client.ts`](frontend/src/entry-client.ts)
 - Server-side entry: [`frontend/src/entry-server.ts`](frontend/src/entry-server.ts)
+
