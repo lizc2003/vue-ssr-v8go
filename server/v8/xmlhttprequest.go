@@ -112,7 +112,7 @@ func (this *XmlHttpRequestMgr) Open(req *xhrCmd) int {
 
 	beginTime := time.Now()
 	this.queue <- req
-	tlog.Infof("xhr %d: %s, wait time: %v", req.XhrId, req.XhrUrl, time.Since(beginTime))
+	tlog.Infof("xhr %d: %s, queue time: %v", req.XhrId, req.XhrUrl, time.Since(beginTime))
 	return req.XhrId
 }
 
@@ -125,6 +125,10 @@ func (this *XmlHttpRequestMgr) Abort(xhrId int) {
 }
 
 func performXhr(req *xhrCmd, client *http.Client, apiHosts []*ApiHost) {
+	defer func(t time.Time, id int, u string) {
+		tlog.Infof("xhr %d: %s, perform time: %v", id, u, time.Since(t))
+	}(time.Now(), req.XhrId, req.reqUrl.String())
+
 	worker := req.worker
 	evt := xhrEvent{XhrId: req.XhrId}
 
