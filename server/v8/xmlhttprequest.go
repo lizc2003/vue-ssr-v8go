@@ -26,16 +26,18 @@ type ApiHost struct {
 }
 
 type xhrCmd struct {
-	Cmd     string            `json:"cmd"`
-	XhrId   int               `json:"xhr_id"`
-	XhrUrl  string            `json:"url"`
-	Method  string            `json:"method"`
-	Headers map[string]string `json:"headers"`
-	Post    string            `json:"post"`
-	Timeout int               `json:"timeout"`
-	reqUrl  *url.URL
-	worker  *Worker
-	aborted bool
+	Cmd            string            `json:"cmd"`
+	XhrId          int               `json:"xhr_id"`
+	XhrUrl         string            `json:"url"`
+	Method         string            `json:"method"`
+	Headers        map[string]string `json:"headers"`
+	Post           string            `json:"post"`
+	Timeout        int               `json:"timeout"`
+	reqUrl         *url.URL
+	worker         *Worker
+	aborted        bool
+	beginTime      time.Time
+	queueBeginTime time.Time
 }
 
 type XmlHttpRequestMgr struct {
@@ -110,9 +112,9 @@ func (this *XmlHttpRequestMgr) Open(req *xhrCmd) int {
 	this.reqs[req.XhrId] = req
 	this.mutex.Unlock()
 
-	beginTime := time.Now()
+	req.beginTime = time.Now()
 	this.queue <- req
-	tlog.Infof("xhr %d: %s, queue time: %v", req.XhrId, req.XhrUrl, time.Since(beginTime))
+	req.queueBeginTime = time.Now()
 	return req.XhrId
 }
 
@@ -125,9 +127,13 @@ func (this *XmlHttpRequestMgr) Abort(xhrId int) {
 }
 
 func performXhr(req *xhrCmd, client *http.Client, apiHosts []*ApiHost) {
-	defer func(t time.Time, id int, u string) {
-		tlog.Infof("xhr %d: %s, perform time: %v", id, u, time.Since(t))
-	}(time.Now(), req.XhrId, req.reqUrl.String())
+	defer func(t time.Time, u string) {
+		tlog.Infof("xhr %d: %s, total: %v, push: %v, queue: %v", req.XhrId, u,
+			time.Since(req.beginTime),
+			req.queueBeginTime.Sub(req.beginTime),
+			t.Sub(req.queueBeginTime),
+		)
+	}(time.Now(), req.reqUrl.String())
 
 	worker := req.worker
 	evt := xhrEvent{XhrId: req.XhrId}
