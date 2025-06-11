@@ -30,30 +30,30 @@ func HandleSsrRequest(writer http.ResponseWriter, request *http.Request) {
 		}
 	}
 
-	tlog.Infof("request: %s", url)
+	render := ThisServer.RenderMgr.NewRender()
+	tlog.Infof("request %d: %s", render.renderId, url)
+
 	beginTime := time.Now()
 
-	result, err := ssrRender(url, ssrHeaders)
+	result, err := ssrRender(render, url, ssrHeaders)
 	statusCode, indexHtml, err := ThisServer.RenderMgr.IndexHtml.GetIndexHtml(result, err)
 	util.WriteHtmlResponse(writer, statusCode, indexHtml)
 
 	elapse := time.Since(beginTime)
 	if err != nil {
 		if err == ErrorSsrOff {
-			tlog.Infof("request finish: %s, elapse: %v, ssr off", url, elapse)
+			tlog.Infof("request %d finish: %s, elapse: %v, ssr off", render.renderId, url, elapse)
 		} else if err == ErrorPageNotFound {
-			tlog.Infof("request finish: %s, elapse: %v, page not found", url, elapse)
+			tlog.Infof("request %d finish: %s, elapse: %v, page not found", render.renderId, url, elapse)
 		} else {
-			tlog.Errorf("request finish: %s, elapse: %v, ssr error: %v", url, elapse, err)
+			tlog.Errorf("request %d finish: %s, elapse: %v, ssr error: %v", render.renderId, url, elapse, err)
 		}
 	} else {
-		tlog.Infof("request finish: %s, elapse: %v", url, elapse)
+		tlog.Infof("request %d finish: %s, elapse: %v", render.renderId, url, elapse)
 	}
 }
 
-func ssrRender(url string, ssrHeaders map[string]string) (RenderResult, error) {
-	req := ThisServer.RenderMgr.NewRender()
-
+func ssrRender(render *Render, url string, ssrHeaders map[string]string) (RenderResult, error) {
 	ssrHeadersJson, _ := json.Marshal(ssrHeaders)
 	urlJson, _ := json.Marshal(url)
 
@@ -61,7 +61,7 @@ func ssrRender(url string, ssrHeaders map[string]string) (RenderResult, error) {
 	jsCode.Grow(renderJsLength + len(ssrHeadersJson) + len(urlJson) + 64)
 	jsCode.WriteString(renderJsPart1)
 	jsCode.WriteString(`{renderId:`)
-	jsCode.WriteString(strconv.FormatInt(req.renderId, 10))
+	jsCode.WriteString(strconv.FormatInt(render.renderId, 10))
 	jsCode.WriteString(`,url:`)
 	jsCode.Write(urlJson)
 	jsCode.WriteString(`,ssrHeaders:`)
@@ -72,15 +72,15 @@ func ssrRender(url string, ssrHeaders map[string]string) (RenderResult, error) {
 	err := ThisServer.VmMgr.Execute(jsCode.String(), renderJsName)
 	if err == nil {
 		select {
-		case <-req.end:
-			if !req.bOK {
-				err = errors.New(req.result.Html)
+		case <-render.end:
+			if !render.bOK {
+				err = errors.New(render.result.Html)
 			}
 		case <-time.After(ThisServer.SsrTime):
 			err = ErrorRenderTimeout
 		}
 	}
-	ThisServer.RenderMgr.CloseRender(req.renderId)
+	ThisServer.RenderMgr.CloseRender(render.renderId)
 
-	return req.result, err
+	return render.result, err
 }
