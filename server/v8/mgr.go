@@ -123,6 +123,7 @@ func (this *VmMgr) acquireWorker() *Worker {
 				workerId := atomic.AddInt64(&this.vmMaxId, 1)
 				worker, err := NewWorker(this.callback, workerId)
 				if err == nil {
+					tlog.Infof("vm created: %d", workerId)
 					atomic.AddInt32(&this.vmCurrentInstances, 1)
 					worker.SetExpireTime(time.Now().Unix() + this.vmLifetime)
 					worker.Acquire()
