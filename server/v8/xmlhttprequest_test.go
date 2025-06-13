@@ -13,7 +13,7 @@ func TestXhr(t *testing.T) {
 		return
 	}
 
-	err = vmMgr.Execute(testXhrJsContent, "test.js")
+	_, err = vmMgr.Execute(testXhrJsContent, "test.js")
 	if err != nil {
 		t.Fatalf("test fail: %v", err)
 		return

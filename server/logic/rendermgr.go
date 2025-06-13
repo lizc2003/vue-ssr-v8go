@@ -6,6 +6,7 @@ import (
 
 type Render struct {
 	end      chan struct{}
+	workerId int64
 	renderId int64
 	result   RenderResult
 	bOK      bool

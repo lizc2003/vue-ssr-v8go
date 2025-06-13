@@ -42,14 +42,14 @@ func HandleSsrRequest(writer http.ResponseWriter, request *http.Request) {
 	elapse := time.Since(beginTime)
 	if err != nil {
 		if err == ErrorSsrOff {
-			tlog.Infof("request %d finish: %s, elapse: %v, ssr off", render.renderId, url, elapse)
+			tlog.Infof("request %d finish(%d): %s, elapse: %v, ssr off", render.renderId, render.workerId, url, elapse)
 		} else if err == ErrorPageNotFound {
-			tlog.Infof("request %d finish: %s, elapse: %v, page not found", render.renderId, url, elapse)
+			tlog.Infof("request %d finish(%d): %s, elapse: %v, page not found", render.renderId, render.workerId, url, elapse)
 		} else {
-			tlog.Errorf("request %d finish: %s, elapse: %v, ssr error: %v", render.renderId, url, elapse, err)
+			tlog.Errorf("request %d finish(%d): %s, elapse: %v, ssr error: %v", render.renderId, render.workerId, url, elapse, err)
 		}
 	} else {
-		tlog.Infof("request %d finish: %s, elapse: %v", render.renderId, url, elapse)
+		tlog.Infof("request %d finish(%d): %s, elapse: %v", render.renderId, render.workerId, url, elapse)
 	}
 }
 
@@ -69,7 +69,8 @@ func ssrRender(render *Render, url string, ssrHeaders map[string]string) (Render
 	jsCode.WriteString(`}`)
 	jsCode.WriteString(renderJsPart2)
 
-	err := ThisServer.VmMgr.Execute(jsCode.String(), renderJsName)
+	workerId, err := ThisServer.VmMgr.Execute(jsCode.String(), renderJsName)
+	render.workerId = workerId
 	if err == nil {
 		select {
 		case <-render.end:

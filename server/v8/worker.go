@@ -31,6 +31,7 @@ func (this *xhrEvent) Reset() {
 type SendEventCallback func(renderId int64, evt string, msg string)
 
 type Worker struct {
+	Id              int64
 	isolate         *v8go.Isolate
 	inspectorClient *v8go.InspectorClient
 	inspector       *v8go.Inspector
@@ -44,7 +45,7 @@ type Worker struct {
 	expireTime int64
 }
 
-func NewWorker(callback SendEventCallback) (*Worker, error) {
+func NewWorker(callback SendEventCallback, workerId int64) (*Worker, error) {
 	isolate := v8go.NewIsolate()
 	client := v8go.NewInspectorClient(newConsoleObj())
 	inspector := v8go.NewInspector(isolate, client)
@@ -52,6 +53,7 @@ func NewWorker(callback SendEventCallback) (*Worker, error) {
 	inspector.ContextCreated(v8ctx)
 
 	worker := &Worker{
+		Id:              workerId,
 		isolate:         isolate,
 		inspectorClient: client,
 		inspector:       inspector,

@@ -35,6 +35,7 @@ type VmMgr struct {
 	xhrMgr   *XmlHttpRequestMgr
 	workers  chan *Worker
 
+	vmMaxId            int64
 	vmLifetime         int64
 	vmMaxInstances     int32
 	vmCurrentInstances int32
@@ -81,15 +82,16 @@ func NewVmMgr(env string, serverDir string, callback SendEventCallback, vc *VmCo
 	return ThisVmMgr, nil
 }
 
-func (this *VmMgr) Execute(code string, scriptName string) error {
+func (this *VmMgr) Execute(code string, scriptName string) (int64, error) {
 	w := this.acquireWorker()
 
 	if w == nil {
 		errMsg := ErrorNoVm.Error()
 		tlog.Error(errMsg)
 		alarm.SendAlert(errMsg)
-		return ErrorNoVm
+		return 0, ErrorNoVm
 	}
+	workerId := w.Id
 	err := w.Execute(code, scriptName)
 
 	// tlog.Debug(w.Execute(`console.debug(dumpObject(globalThis))`, "test.js"))
@@ -99,7 +101,7 @@ func (this *VmMgr) Execute(code string, scriptName string) error {
 	if err != nil {
 		tlog.Error(err)
 	}
-	return err
+	return workerId, err
 }
 
 func (this *VmMgr) acquireWorker() *Worker {
@@ -118,7 +120,8 @@ func (this *VmMgr) acquireWorker() *Worker {
 			}
 		default:
 			if this.vmCurrentInstances < this.vmMaxInstances {
-				worker, err := NewWorker(this.callback)
+				workerId := atomic.AddInt64(&this.vmMaxId, 1)
+				worker, err := NewWorker(this.callback, workerId)
 				if err == nil {
 					atomic.AddInt32(&this.vmCurrentInstances, 1)
 					worker.SetExpireTime(time.Now().Unix() + this.vmLifetime)
@@ -172,6 +175,7 @@ func (this *VmMgr) releaseWorker(worker *Worker) {
 
 			go func(w *Worker) {
 				time.Sleep(VmDeleteDelayTime)
+				tlog.Infof("vm deleted: %d", w.Id)
 				w.Dispose()
 			}(worker)
 		} else {
