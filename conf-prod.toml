@@ -16,9 +16,9 @@ dir="/data/vue-ssr-v8go/log"
 [V8vm]
 use_strict = true
 delete_delay_time = 10
-instance_lifetime = 3600
-max_instances = 100
-xmlhttprequest_threads = 200
+instance_lifetime = 120
+max_instances = 20
+xmlhttprequest_threads = 100
 
 [Api]
 hosts = ["test.com"]
