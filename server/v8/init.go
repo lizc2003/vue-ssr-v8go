@@ -21,7 +21,7 @@ const (
 
 func initVm(env string, serverDir string, useStrict bool) error {
 	//flags := []string{"--max-heap-size=4096"}
-	flags := []string{"--no-allow-natives-syntax"}
+	flags := []string{"--max-old-space-size=4096", "--no-allow-natives-syntax"}
 	if useStrict {
 		flags = append(flags, "--use_strict")
 	} else {
