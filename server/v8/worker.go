@@ -104,6 +104,9 @@ ERROR:
 }
 
 func (this *Worker) Dispose() {
+	this.mutex.Lock()
+	defer this.mutex.Unlock()
+
 	if this.disposed {
 		return
 	}
@@ -153,10 +156,12 @@ func (this *Worker) Execute(code string, scriptName string) error {
 func (this *Worker) SendXhrEvent(evt *xhrEvent) error {
 	var err error
 	this.mutex.Lock()
-	if this.running || len(this.evtQueue) > 0 {
-		this.evtQueue = append(this.evtQueue, evt)
-	} else {
-		err = doSendXhrEvent(this, evt)
+	if !this.disposed {
+		if this.running || len(this.evtQueue) > 0 {
+			this.evtQueue = append(this.evtQueue, evt)
+		} else {
+			err = doSendXhrEvent(this, evt)
+		}
 	}
 	this.mutex.Unlock()
 	return err

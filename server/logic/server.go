@@ -50,11 +50,14 @@ func RunServer(c *Config) {
 	publicDir := distPath + PublicPath
 	serverDir := distPath + ServerPath
 
-	ssrTimeout := c.SsrTimeout
+	ssrTimeout := int32(c.SsrTimeout)
 	if ssrTimeout < 1 {
 		ssrTimeout = 1
 	} else if ssrTimeout > 120 {
 		ssrTimeout = 120
+	}
+	if c.VmConfig.DeleteDelayTime > ssrTimeout {
+		c.VmConfig.DeleteDelayTime = ssrTimeout
 	}
 
 	vmMgr, err := v8.NewVmMgr(c.Env, serverDir, SendEventCallback, &c.VmConfig, &c.ApiConfig)

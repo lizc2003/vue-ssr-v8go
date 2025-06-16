@@ -16,7 +16,6 @@ const (
 	MaxXhrThreads  = 4000
 	MinXhrThreads  = 2
 
-	VmDeleteDelayTime    = 150 * time.Second
 	VmAcquireTimeout     = 5 // seconds
 	ProcessExitThreshold = 1000
 )
@@ -27,6 +26,7 @@ type VmConfig struct {
 	UseStrict        bool  `toml:"use_strict"`
 	MaxInstances     int32 `toml:"max_instances"`
 	InstanceLifetime int32 `toml:"instance_lifetime"`
+	DeleteDelayTime  int32 `toml:"delete_delay_time"`
 	XhrThreads       int32 `toml:"xmlhttprequest_threads"`
 }
 
@@ -35,6 +35,7 @@ type VmMgr struct {
 	xhrMgr   *XmlHttpRequestMgr
 	workers  chan *Worker
 
+	vmDeleteDelayTime  time.Duration
 	vmMaxId            int64
 	vmLifetime         int64
 	vmMaxInstances     int32
@@ -69,6 +70,11 @@ func NewVmMgr(env string, serverDir string, callback SendEventCallback, vc *VmCo
 		vmLifetime = MaxVmLiftTime
 	}
 
+	vmDeleteDelayTime := vc.DeleteDelayTime
+	if vmDeleteDelayTime <= 0 {
+		vmDeleteDelayTime = 1
+	}
+
 	workers := make(chan *Worker, vmMaxInstances+100)
 	ThisVmMgr = &VmMgr{
 		callback:           callback,
@@ -76,6 +82,7 @@ func NewVmMgr(env string, serverDir string, callback SendEventCallback, vc *VmCo
 		workers:            workers,
 		vmLifetime:         int64(vmLifetime),
 		vmMaxInstances:     vmMaxInstances,
+		vmDeleteDelayTime:  time.Duration(vmDeleteDelayTime) * time.Second,
 		vmCurrentInstances: 0,
 	}
 
@@ -175,9 +182,9 @@ func (this *VmMgr) releaseWorker(worker *Worker) {
 			atomic.AddInt32(&this.vmCurrentInstances, -1)
 
 			go func(w *Worker) {
-				time.Sleep(VmDeleteDelayTime)
-				tlog.Infof("vm deleted: %d", w.Id)
+				time.Sleep(this.vmDeleteDelayTime)
 				w.Dispose()
+				tlog.Infof("vm deleted: %d", w.Id)
 			}(worker)
 		} else {
 			this.workers <- worker
