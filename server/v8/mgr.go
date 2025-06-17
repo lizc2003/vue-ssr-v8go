@@ -3,6 +3,7 @@ package v8
 import (
 	"errors"
 	"fmt"
+	"github.com/lizc2003/v8go"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/alarm"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/tlog"
 	"math/rand"
@@ -39,13 +40,14 @@ type VmMgr struct {
 	xhrMgr   *XmlHttpRequestMgr
 	workers  chan *Worker
 
-	mutex              sync.Mutex
-	vmDeleteDelayTime  time.Duration
-	vmMaxId            int64
-	vmLifetime         int64
-	vmMaxInstances     int32
-	vmCurrentInstances int32
-	vmAcquireFailCount int32
+	mutex               sync.Mutex
+	vmDeleteDelayTime   time.Duration
+	vmHeapSizeThreshold uint64
+	vmMaxId             int64
+	vmLifetime          int64
+	vmMaxInstances      int32
+	vmCurrentInstances  int32
+	vmAcquireFailCount  int32
 
 	DumpHeapDir string
 	isDumpHeap  int32
@@ -57,6 +59,14 @@ func NewVmMgr(env string, serverDir string, callback SendEventCallback, vc *VmCo
 	err := initVm(env, serverDir, vc.UseStrict)
 	if err != nil {
 		return nil, err
+	}
+
+	heapSizeLimit := uint64(0)
+	if true {
+		iso := v8go.NewIsolate()
+		heapSizeLimit = iso.GetHeapStatistics().HeapSizeLimit
+		iso.Dispose()
+		tlog.Infof("v8 version: %s, heap size limit: %dM", v8go.Version(), heapSizeLimit/1024/1024)
 	}
 
 	xhrMgr, err := NewXmlHttpRequestMgr(vc.XhrThreads, ac)
@@ -85,13 +95,14 @@ func NewVmMgr(env string, serverDir string, callback SendEventCallback, vc *VmCo
 
 	workers := make(chan *Worker, vmMaxInstances+100)
 	ThisVmMgr = &VmMgr{
-		callback:           callback,
-		xhrMgr:             xhrMgr,
-		workers:            workers,
-		vmLifetime:         int64(vmLifetime),
-		vmMaxInstances:     vmMaxInstances,
-		vmDeleteDelayTime:  time.Duration(vmDeleteDelayTime) * time.Second,
-		vmCurrentInstances: 0,
+		callback:            callback,
+		xhrMgr:              xhrMgr,
+		workers:             workers,
+		vmHeapSizeThreshold: heapSizeLimit / 2,
+		vmLifetime:          int64(vmLifetime),
+		vmMaxInstances:      vmMaxInstances,
+		vmDeleteDelayTime:   time.Duration(vmDeleteDelayTime) * time.Second,
+		vmCurrentInstances:  0,
 	}
 
 	return ThisVmMgr, nil

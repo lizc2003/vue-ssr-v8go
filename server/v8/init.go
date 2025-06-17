@@ -3,7 +3,6 @@ package v8
 import (
 	"github.com/lizc2003/v8go"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/defs"
-	"github.com/lizc2003/vue-ssr-v8go/server/common/tlog"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/util"
 	"os"
 	"strings"
@@ -38,12 +37,6 @@ func initVm(env string, serverDir string, useStrict bool) error {
 	if env == defs.EnvDev {
 		nodeEnv = "development"
 		bDev = true
-	}
-
-	if true {
-		iso := v8go.NewIsolate()
-		tlog.Infof("v8 version: %s, heap size limit: %dM", v8go.Version(), iso.GetHeapStatistics().HeapSizeLimit/1024/1024)
-		iso.Dispose()
 	}
 
 	gInitJs = strings.Replace(initJsContent, "$NODE_ENV", nodeEnv, 1)
