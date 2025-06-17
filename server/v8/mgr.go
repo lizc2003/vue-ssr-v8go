@@ -62,12 +62,12 @@ func NewVmMgr(env string, serverDir string, callback SendEventCallback, vc *VmCo
 	}
 
 	heapSizeLimit := uint64(0)
-	if true {
+	{
 		iso := v8go.NewIsolate()
 		heapSizeLimit = iso.GetHeapStatistics().HeapSizeLimit
 		iso.Dispose()
-		tlog.Infof("v8 version: %s, heap size limit: %dM", v8go.Version(), heapSizeLimit/1024/1024)
 	}
+	tlog.Infof("v8 version: %s, heap size limit: %dM", v8go.Version(), heapSizeLimit/1024/1024)
 
 	xhrMgr, err := NewXmlHttpRequestMgr(vc.XhrThreads, ac)
 	if err != nil {
