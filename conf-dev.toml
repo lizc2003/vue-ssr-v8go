@@ -11,7 +11,7 @@ filenum=10
 filesize=256
 filename="run"
 level="DEBUG"
-dir="./log/{svr.name}"
+dir="./log"
 
 [V8vm]
 use_strict = true

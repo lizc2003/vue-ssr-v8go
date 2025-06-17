@@ -6,7 +6,10 @@ import (
 	"github.com/lizc2003/vue-ssr-v8go/server/common/tlog"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/util"
 	"github.com/lizc2003/vue-ssr-v8go/server/v8"
+	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -65,6 +68,8 @@ func RunServer(c *Config) {
 		tlog.Fatal(err.Error())
 		return
 	}
+	vmMgr.DumpHeapDir = c.Log.Dir
+	os.MkdirAll(vmMgr.DumpHeapDir, 0755)
 
 	renderMgr, err := NewRenderMgr(c.Env, publicDir)
 	if err != nil {
@@ -78,8 +83,21 @@ func RunServer(c *Config) {
 		SsrTime:   time.Duration(ssrTimeout) * time.Second,
 	}
 
+	go runDumpSignalRoutine()
+
 	fmt.Printf("At %s, the server was started on port %s.\n",
 		util.FormatTime(time.Now()),
 		strings.Split(c.Host, ":")[1])
 	util.GraceHttpServe(c.Host, GetHttpHandler(c.Env, publicDir))
+}
+
+func runDumpSignalRoutine() {
+	ch := make(chan os.Signal)
+	signal.Notify(ch, syscall.SIGUSR2)
+	for {
+		sig := <-ch
+		if sig == syscall.SIGUSR2 {
+			ThisServer.VmMgr.SignalDumpHeap()
+		}
+	}
 }

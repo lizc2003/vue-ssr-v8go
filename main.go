@@ -14,7 +14,7 @@ func main() {
 		return
 	}
 
-	tlog.Init(c.Log, defs.App, "")
+	tlog.Init(&c.Log, defs.App, "")
 	logic.RunServer(&c)
 	tlog.Close()
 }

@@ -2,9 +2,12 @@ package v8
 
 import (
 	"errors"
+	"fmt"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/alarm"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/tlog"
+	"math/rand"
 	"os"
+	"path"
 	"sync/atomic"
 	"time"
 )
@@ -41,6 +44,9 @@ type VmMgr struct {
 	vmMaxInstances     int32
 	vmCurrentInstances int32
 	vmAcquireFailCount int32
+
+	DumpHeapDir string
+	isDumpHeap  int32
 }
 
 var ThisVmMgr *VmMgr
@@ -89,6 +95,10 @@ func NewVmMgr(env string, serverDir string, callback SendEventCallback, vc *VmCo
 	return ThisVmMgr, nil
 }
 
+func (this *VmMgr) SignalDumpHeap() {
+	atomic.StoreInt32(&this.isDumpHeap, 1)
+}
+
 func (this *VmMgr) Execute(code string, scriptName string) (int64, error) {
 	w := this.acquireWorker()
 
@@ -103,6 +113,11 @@ func (this *VmMgr) Execute(code string, scriptName string) (int64, error) {
 
 	// tlog.Debug(w.Execute(`console.debug(dumpObject(globalThis))`, "test.js"))
 
+	if atomic.CompareAndSwapInt32(&this.isDumpHeap, 1, 0) {
+		n := rand.Int31n(1000)
+		fName := time.Now().Format("20060102150405") + fmt.Sprintf("-%03d.heapsnapshot", n)
+		w.isolate.WriteSnapshot(path.Join(this.DumpHeapDir, fName))
+	}
 	this.releaseWorker(w)
 
 	if err != nil {

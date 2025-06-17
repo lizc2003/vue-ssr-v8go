@@ -37,7 +37,7 @@ func (c *Config) check(serverName string, suffix string) {
 	}
 
 	if c.Dir == "" {
-		c.Dir = "./logs"
+		c.Dir = "./log"
 	} else {
 		const svrNameTag = "{svr.name}"
 		fileDir := strings.Trim(c.Dir, " ")
@@ -53,10 +53,10 @@ func (c *Config) check(serverName string, suffix string) {
 	}
 }
 
-func Init(c Config, serverName string, suffix string) {
+func Init(c *Config, serverName string, suffix string) {
 	if gLogger == stdLogger {
 		c.check(serverName, suffix)
-		l := newLogger(&c, serverName)
+		l := newLogger(c, serverName)
 		if l != nil {
 			gLogger = l
 		} else {
