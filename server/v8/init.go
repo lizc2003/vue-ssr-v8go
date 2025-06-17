@@ -21,10 +21,8 @@ const (
 )
 
 func initVm(env string, serverDir string, useStrict bool) error {
-	//flags := []string{"--max-heap-size=4096"}
 	flags := []string{
-		"--max-old-space-size=4096",
-		"--max-semi-space-size=128",
+		"--max-heap-size=4096",
 		//"--gc-interval=100",
 		//"--trace-gc",
 		"--no-allow-natives-syntax"}
@@ -42,9 +40,9 @@ func initVm(env string, serverDir string, useStrict bool) error {
 		bDev = true
 	}
 
-	if bDev {
+	if true {
 		iso := v8go.NewIsolate()
-		tlog.Debugf("v8 heap statistics: %+v", iso.GetHeapStatistics())
+		tlog.Infof("v8 version: %s, heap size limit: %dM", v8go.Version(), iso.GetHeapStatistics().HeapSizeLimit/1024/1024)
 		iso.Dispose()
 	}
 
