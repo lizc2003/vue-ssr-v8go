@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"os"
 	"path"
+	"sync"
 	"sync/atomic"
 	"time"
 )
@@ -38,6 +39,7 @@ type VmMgr struct {
 	xhrMgr   *XmlHttpRequestMgr
 	workers  chan *Worker
 
+	mutex              sync.Mutex
 	vmDeleteDelayTime  time.Duration
 	vmMaxId            int64
 	vmLifetime         int64
@@ -116,7 +118,8 @@ func (this *VmMgr) Execute(code string, scriptName string) (int64, error) {
 	if atomic.CompareAndSwapInt32(&this.isDumpHeap, 1, 0) {
 		n := rand.Int31n(1000)
 		fName := time.Now().Format("20060102150405") + fmt.Sprintf("-%03d.heapsnapshot", n)
-		w.isolate.WriteSnapshot(path.Join(this.DumpHeapDir, fName))
+		fName = path.Join(this.DumpHeapDir, fName)
+		w.isolate.WriteSnapshot(fName, true)
 	}
 	this.releaseWorker(w)
 
@@ -141,21 +144,29 @@ func (this *VmMgr) acquireWorker() *Worker {
 				busyWorkers = append(busyWorkers, worker)
 			}
 		default:
+			bReachMax = true
 			if this.vmCurrentInstances < this.vmMaxInstances {
+				this.mutex.Lock()
+				if this.vmCurrentInstances < this.vmMaxInstances {
+					atomic.AddInt32(&this.vmCurrentInstances, 1)
+					bReachMax = false
+				}
+				this.mutex.Unlock()
+			}
+
+			if !bReachMax {
 				workerId := atomic.AddInt64(&this.vmMaxId, 1)
 				worker, err := NewWorker(this.callback, workerId)
 				if err == nil {
 					tlog.Infof("vm created: %d", workerId)
-					atomic.AddInt32(&this.vmCurrentInstances, 1)
 					worker.SetExpireTime(time.Now().Unix() + this.vmLifetime)
 					worker.Acquire()
 					ret = worker
 				} else {
 					tlog.Error(err)
+					atomic.AddInt32(&this.vmCurrentInstances, -1)
 					bNewFailed = true
 				}
-			} else {
-				bReachMax = true
 			}
 		}
 
