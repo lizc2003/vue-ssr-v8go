@@ -141,7 +141,7 @@ func (this *VmMgr) Execute(code string, scriptName string) (int64, error) {
 	if (bChecked && this.bDev) ||
 		atomic.CompareAndSwapInt32(&this.isDumpHeap, 1, 0) {
 		n := rand.Int31n(1000)
-		fName := time.Now().Format("20060102150405") + fmt.Sprintf("-%03d.heapsnapshot", n)
+		fName := time.Now().Format("20060102-150405") + fmt.Sprintf("-%03d.heapsnapshot", n)
 		fName = path.Join(this.DumpHeapDir, fName)
 		w.isolate.WriteSnapshot(fName, true)
 	}
