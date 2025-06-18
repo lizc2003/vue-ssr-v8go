@@ -4,7 +4,7 @@ go 1.24.2
 
 require (
 	github.com/BurntSushi/toml v1.5.0
-	github.com/lizc2003/v8go v0.6.0
+	github.com/lizc2003/v8go v0.7.0
 )
 
 require (

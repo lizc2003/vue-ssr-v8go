@@ -25,7 +25,7 @@ curl http://localhost:9090/test
 
 Pros:
 - No need to use Node.js, powered by V8 and Golang.
-- Thread-safe V8 scheduler with dynamic scaling (5-500+ isolates)
+- Thread-safe V8 scheduler with dynamic scaling (1-50+ isolates)
 - Prevents memory leaks via lifetime-controlled isolation (0-3600s+).
 - An enhanced and optimized XMLHttpRequest is implemented, with setTimeout and setInterval removed, thus bettering SSR.
 - Automatically fall back to client-side rendering when server-side rendering encounters an error.

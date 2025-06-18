@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"time"
 )
 
 type xhrEvent struct {
@@ -43,6 +44,9 @@ type Worker struct {
 	evtQueue   []*xhrEvent
 	callback   SendEventCallback
 	expireTime int64
+
+	lastUsedHeap  uint64
+	checkHeapTime int64
 }
 
 func NewWorker(callback SendEventCallback, workerId int64) (*Worker, error) {
@@ -165,6 +169,19 @@ func (this *Worker) SendXhrEvent(evt *xhrEvent) error {
 	}
 	this.mutex.Unlock()
 	return err
+}
+
+func (this *Worker) CheckHeap() {
+	if time.Now().Unix() > this.checkHeapTime {
+		this.checkHeapTime = time.Now().Unix() + CheckHeapInterval
+		heapSize := this.isolate.GetHeapStatistics().UsedHeapSize
+		if heapSize > CheckHeapSize &&
+			heapSize > this.lastUsedHeap*CheckHeapGrowRatio/100 {
+			this.lastUsedHeap = heapSize
+			this.isolate.FullGC()
+			tlog.Infof("worker %d trigger gc, used heap size: %dM", this.Id, heapSize/1024/1024)
+		}
+	}
 }
 
 func (this *Worker) SetExpireTime(expireTime int64) {

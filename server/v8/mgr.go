@@ -23,12 +23,18 @@ const (
 
 	VmAcquireTimeout     = 5 // seconds
 	ProcessExitThreshold = 1000
+
+	CheckHeapInterval  = 5 // seconds
+	CheckHeapSize      = 512 * 1024 * 1024
+	CheckHeapGrowRatio = 120 // 120%
+	MinHeapSizeLimit   = (CheckHeapSize / 1024 / 1024) * 150 / 100
 )
 
 var ErrorNoVm = errors.New("the v8 instance cannot be acquired.")
 
 type VmConfig struct {
 	UseStrict        bool  `toml:"use_strict"`
+	HeapSizeLimit    int32 `toml:"heap_size_limit"`
 	MaxInstances     int32 `toml:"max_instances"`
 	InstanceLifetime int32 `toml:"instance_lifetime"`
 	DeleteDelayTime  int32 `toml:"delete_delay_time"`
@@ -56,7 +62,7 @@ type VmMgr struct {
 var ThisVmMgr *VmMgr
 
 func NewVmMgr(env string, serverDir string, callback SendEventCallback, vc *VmConfig, ac *ApiConfig) (*VmMgr, error) {
-	err := initVm(env, serverDir, vc.UseStrict)
+	err := initVm(env, serverDir, vc.UseStrict, vc.HeapSizeLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -126,12 +132,14 @@ func (this *VmMgr) Execute(code string, scriptName string) (int64, error) {
 
 	// tlog.Debug(w.Execute(`console.debug(dumpObject(globalThis))`, "test.js"))
 
+	w.CheckHeap()
 	if atomic.CompareAndSwapInt32(&this.isDumpHeap, 1, 0) {
 		n := rand.Int31n(1000)
 		fName := time.Now().Format("20060102150405") + fmt.Sprintf("-%03d.heapsnapshot", n)
 		fName = path.Join(this.DumpHeapDir, fName)
 		w.isolate.WriteSnapshot(fName, true)
 	}
+
 	this.releaseWorker(w)
 
 	if err != nil {

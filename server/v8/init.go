@@ -1,6 +1,7 @@
 package v8
 
 import (
+	"fmt"
 	"github.com/lizc2003/v8go"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/defs"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/util"
@@ -19,9 +20,15 @@ const (
 	gServerJsName = "server.js"
 )
 
-func initVm(env string, serverDir string, useStrict bool) error {
+func initVm(env string, serverDir string, useStrict bool, heapSizeLimit int32) error {
+	if heapSizeLimit < MinHeapSizeLimit {
+		heapSizeLimit = MinHeapSizeLimit
+	} else if heapSizeLimit > 8192 {
+		heapSizeLimit = 8192
+	}
+
 	flags := []string{
-		"--max-heap-size=4096",
+		fmt.Sprintf("--max-heap-size=%d", heapSizeLimit),
 		//"--gc-interval=100",
 		//"--trace-gc",
 		"--no-allow-natives-syntax"}
