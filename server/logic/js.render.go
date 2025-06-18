@@ -29,7 +29,7 @@ const renderJsName = "render.js"
 
 const renderJsContent = `
 (function() {
-	const ctx = $RENDER_CONTEXT;
+	let ctx = $RENDER_CONTEXT;
 	v8goRenderToString(ctx).then((html) => {
 		const msg = {html: html};
 		if (typeof ctx.htmlMeta === 'string') {
@@ -42,8 +42,10 @@ const renderJsContent = `
 			msg.state = JSON.stringify(ctx.htmlState);
 		}
 		v8goGo.sendEvent(ctx.renderId, "render_ok", JSON.stringify(msg));
+		ctx = null;
 	}).catch((err) => {
 		v8goGo.sendEvent(ctx.renderId, "render_fail", err.stack);
+		ctx = null;
 	})
 })()
 `

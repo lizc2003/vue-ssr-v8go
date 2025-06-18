@@ -171,7 +171,7 @@ func (this *Worker) SendXhrEvent(evt *xhrEvent) error {
 	return err
 }
 
-func (this *Worker) CheckHeap() {
+func (this *Worker) CheckHeap() bool {
 	if time.Now().Unix() > this.checkHeapTime {
 		this.checkHeapTime = time.Now().Unix() + CheckHeapInterval
 		heapSize := this.isolate.GetHeapStatistics().UsedHeapSize
@@ -180,8 +180,10 @@ func (this *Worker) CheckHeap() {
 			this.lastUsedHeap = heapSize
 			this.isolate.FullGC()
 			tlog.Infof("worker %d trigger gc, used heap size: %dM", this.Id, heapSize/1024/1024)
+			return true
 		}
 	}
+	return false
 }
 
 func (this *Worker) SetExpireTime(expireTime int64) {

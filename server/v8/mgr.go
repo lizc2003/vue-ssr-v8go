@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/lizc2003/v8go"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/alarm"
+	"github.com/lizc2003/vue-ssr-v8go/server/common/defs"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/tlog"
 	"math/rand"
 	"os"
@@ -46,14 +47,14 @@ type VmMgr struct {
 	xhrMgr   *XmlHttpRequestMgr
 	workers  chan *Worker
 
-	mutex               sync.Mutex
-	vmDeleteDelayTime   time.Duration
-	vmHeapSizeThreshold uint64
-	vmMaxId             int64
-	vmLifetime          int64
-	vmMaxInstances      int32
-	vmCurrentInstances  int32
-	vmAcquireFailCount  int32
+	bDev               bool
+	mutex              sync.Mutex
+	vmDeleteDelayTime  time.Duration
+	vmMaxId            int64
+	vmLifetime         int64
+	vmMaxInstances     int32
+	vmCurrentInstances int32
+	vmAcquireFailCount int32
 
 	DumpHeapDir string
 	isDumpHeap  int32
@@ -62,7 +63,11 @@ type VmMgr struct {
 var ThisVmMgr *VmMgr
 
 func NewVmMgr(env string, serverDir string, callback SendEventCallback, vc *VmConfig, ac *ApiConfig) (*VmMgr, error) {
-	err := initVm(env, serverDir, vc.UseStrict, vc.HeapSizeLimit)
+	bDev := false
+	if env == defs.EnvDev {
+		bDev = true
+	}
+	err := initVm(bDev, serverDir, vc.UseStrict, vc.HeapSizeLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -101,14 +106,14 @@ func NewVmMgr(env string, serverDir string, callback SendEventCallback, vc *VmCo
 
 	workers := make(chan *Worker, vmMaxInstances+100)
 	ThisVmMgr = &VmMgr{
-		callback:            callback,
-		xhrMgr:              xhrMgr,
-		workers:             workers,
-		vmHeapSizeThreshold: heapSizeLimit / 2,
-		vmLifetime:          int64(vmLifetime),
-		vmMaxInstances:      vmMaxInstances,
-		vmDeleteDelayTime:   time.Duration(vmDeleteDelayTime) * time.Second,
-		vmCurrentInstances:  0,
+		callback:           callback,
+		xhrMgr:             xhrMgr,
+		workers:            workers,
+		bDev:               bDev,
+		vmLifetime:         int64(vmLifetime),
+		vmMaxInstances:     vmMaxInstances,
+		vmDeleteDelayTime:  time.Duration(vmDeleteDelayTime) * time.Second,
+		vmCurrentInstances: 0,
 	}
 
 	return ThisVmMgr, nil
@@ -132,8 +137,9 @@ func (this *VmMgr) Execute(code string, scriptName string) (int64, error) {
 
 	// tlog.Debug(w.Execute(`console.debug(dumpObject(globalThis))`, "test.js"))
 
-	w.CheckHeap()
-	if atomic.CompareAndSwapInt32(&this.isDumpHeap, 1, 0) {
+	bChecked := w.CheckHeap()
+	if (bChecked && this.bDev) ||
+		atomic.CompareAndSwapInt32(&this.isDumpHeap, 1, 0) {
 		n := rand.Int31n(1000)
 		fName := time.Now().Format("20060102150405") + fmt.Sprintf("-%03d.heapsnapshot", n)
 		fName = path.Join(this.DumpHeapDir, fName)

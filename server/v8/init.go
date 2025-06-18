@@ -3,7 +3,6 @@ package v8
 import (
 	"fmt"
 	"github.com/lizc2003/v8go"
-	"github.com/lizc2003/vue-ssr-v8go/server/common/defs"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/util"
 	"os"
 	"strings"
@@ -20,7 +19,7 @@ const (
 	gServerJsName = "server.js"
 )
 
-func initVm(env string, serverDir string, useStrict bool, heapSizeLimit int32) error {
+func initVm(bDev bool, serverDir string, useStrict bool, heapSizeLimit int32) error {
 	if heapSizeLimit < MinHeapSizeLimit {
 		heapSizeLimit = MinHeapSizeLimit
 	} else if heapSizeLimit > 8192 {
@@ -39,13 +38,10 @@ func initVm(env string, serverDir string, useStrict bool, heapSizeLimit int32) e
 	}
 	v8go.SetFlags(flags...)
 
-	bDev := false
 	nodeEnv := "production"
-	if env == defs.EnvDev {
+	if bDev {
 		nodeEnv = "development"
-		bDev = true
 	}
-
 	gInitJs = strings.Replace(initJsContent, "$NODE_ENV", nodeEnv, 1)
 	gInitJs += xmlHttpRequestJsContent
 

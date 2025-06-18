@@ -16,7 +16,7 @@ dir="./log"
 [V8vm]
 use_strict = true
 delete_delay_time = 10
-heap_size_limit = 1408
+heap_size_limit = 4096
 max_instances = 5
 instance_lifetime = 0
 xmlhttprequest_threads = 10
