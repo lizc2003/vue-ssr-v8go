@@ -29,7 +29,7 @@ func (this *xhrEvent) Reset() {
 	this.Response = ""
 }
 
-type SendEventCallback func(renderId int64, evt string, msg string)
+type SendMessageCallback func(mtype int64, param1 int64, param2 string)
 
 type Worker struct {
 	Id              int64
@@ -42,14 +42,14 @@ type Worker struct {
 	running    bool
 	mutex      sync.Mutex
 	evtQueue   []*xhrEvent
-	callback   SendEventCallback
+	callback   SendMessageCallback
 	expireTime int64
 
 	lastUsedHeap  uint64
 	checkHeapTime int64
 }
 
-func NewWorker(callback SendEventCallback, workerId int64) (*Worker, error) {
+func NewWorker(callback SendMessageCallback, workerId int64) (*Worker, error) {
 	isolate := v8go.NewIsolate()
 	client := v8go.NewInspectorClient(newConsoleObj())
 	inspector := v8go.NewInspector(isolate, client)
@@ -200,28 +200,29 @@ func setFunctionCallback(w *Worker) error {
 	v8goOT := v8go.NewObjectTemplate(w.isolate)
 
 	xhrCmd := v8go.NewFunctionTemplate(w.isolate, func(info *v8go.FunctionCallbackInfo) *v8go.Value {
+		var ret *v8go.Value
 		args := info.Args()
-		if len(args) < 1 {
-			return nil
+		if len(args) >= 1 {
+			ret, _ = v8go.NewValue(w.isolate,
+				handleXMLHttpRequestCmd(w, args[0].String()),
+			)
 		}
-		ret, _ := v8go.NewValue(w.isolate,
-			handleXMLHttpRequestCmd(w, args[0].String()),
-		)
+		info.Release()
 		return ret
 	})
 	v8goOT.Set("handleXhrCmd", xhrCmd)
 
-	sendEvent := v8go.NewFunctionTemplate(w.isolate, func(info *v8go.FunctionCallbackInfo) *v8go.Value {
+	sendMessage := v8go.NewFunctionTemplate(w.isolate, func(info *v8go.FunctionCallbackInfo) *v8go.Value {
 		if w.callback != nil {
 			args := info.Args()
-			if len(args) < 3 {
-				return nil
+			if len(args) >= 3 {
+				w.callback(args[0].Integer(), args[1].Integer(), args[2].String())
 			}
-			w.callback(args[0].Integer(), args[1].String(), args[2].String())
 		}
+		info.Release()
 		return nil
 	})
-	v8goOT.Set("sendEvent", sendEvent)
+	v8goOT.Set("sendMessage", sendMessage)
 
 	v8goObj, err := v8goOT.NewInstance(w.v8ctx)
 	if err != nil {

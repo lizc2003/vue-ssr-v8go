@@ -41,10 +41,10 @@ const renderJsContent = `
 		if (ctx.htmlState) {
 			msg.state = JSON.stringify(ctx.htmlState);
 		}
-		v8goGo.sendEvent(ctx.renderId, "render_ok", JSON.stringify(msg));
+		v8goGo.sendMessage(10, ctx.renderId, JSON.stringify(msg));
 		ctx = null;
 	}).catch((err) => {
-		v8goGo.sendEvent(ctx.renderId, "render_fail", err.stack);
+		v8goGo.sendMessage(11, ctx.renderId, err.stack);
 		ctx = null;
 	})
 })()

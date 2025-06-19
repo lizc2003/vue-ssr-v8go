@@ -17,16 +17,10 @@ dir="./log"
 use_strict = true
 delete_delay_time = 10
 heap_size_limit = 1408
-max_instances = 5
-instance_lifetime = 0
-xmlhttprequest_threads = 10
+instance_lifetime = 3600
+max_instances = 1
+xmlhttprequest_threads = 5
 
 [Api]
 hosts = ["ifconfig.me"]
 targets = ["https://ifconfig.me"]
-
-[Proxy]
-[[Proxy.location]]
-path = "/api/ifconfig"
-target = "https://ifconfig.me"
-rewrite = ["/api/ifconfig", ""]

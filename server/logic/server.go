@@ -63,7 +63,7 @@ func RunServer(c *Config) {
 		c.VmConfig.DeleteDelayTime = ssrTimeout
 	}
 
-	vmMgr, err := v8.NewVmMgr(c.Env, serverDir, SendEventCallback, &c.VmConfig, &c.ApiConfig)
+	vmMgr, err := v8.NewVmMgr(c.Env, serverDir, SendMessageCallback, &c.VmConfig, &c.ApiConfig)
 	if err != nil {
 		tlog.Fatal(err.Error())
 		return

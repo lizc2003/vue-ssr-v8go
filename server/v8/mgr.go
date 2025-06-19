@@ -43,7 +43,7 @@ type VmConfig struct {
 }
 
 type VmMgr struct {
-	callback SendEventCallback
+	callback SendMessageCallback
 	xhrMgr   *XmlHttpRequestMgr
 	workers  chan *Worker
 
@@ -62,7 +62,7 @@ type VmMgr struct {
 
 var ThisVmMgr *VmMgr
 
-func NewVmMgr(env string, serverDir string, callback SendEventCallback, vc *VmConfig, ac *ApiConfig) (*VmMgr, error) {
+func NewVmMgr(env string, serverDir string, callback SendMessageCallback, vc *VmConfig, ac *ApiConfig) (*VmMgr, error) {
 	bDev := false
 	if env == defs.EnvDev {
 		bDev = true
