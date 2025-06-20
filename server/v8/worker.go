@@ -19,6 +19,7 @@ type xhrEvent struct {
 	Status   int32             `json:"status,omitempty"`
 	Headers  map[string]string `json:"headers,omitempty"`
 	Response string            `json:"response,omitempty"`
+	renderId int64
 }
 
 func (this *xhrEvent) Reset() {
@@ -27,6 +28,11 @@ func (this *xhrEvent) Reset() {
 	this.Status = 0
 	this.Headers = nil
 	this.Response = ""
+}
+
+func (this *xhrEvent) Clone() *xhrEvent {
+	evt := *this
+	return &evt
 }
 
 type SendMessageCallback func(mtype int64, param1 int64, param2 string)
@@ -162,7 +168,7 @@ func (this *Worker) SendXhrEvent(evt *xhrEvent) error {
 	this.mutex.Lock()
 	if !this.disposed {
 		if this.running || len(this.evtQueue) > 0 {
-			this.evtQueue = append(this.evtQueue, evt)
+			this.evtQueue = append(this.evtQueue, evt.Clone())
 		} else {
 			err = doSendXhrEvent(this, evt)
 		}
@@ -231,7 +237,7 @@ func setFunctionCallback(w *Worker) error {
 	return w.v8ctx.Global().Set("v8goGo", v8goObj)
 }
 
-func doSendXhrEvent(w *Worker, evt any) error {
+func doSendXhrEvent(w *Worker, evt *xhrEvent) error {
 	s, err := json.Marshal(evt)
 	if err != nil {
 		tlog.Error(err)
@@ -245,7 +251,13 @@ func doSendXhrEvent(w *Worker, evt any) error {
 
 	_, err = w.v8ctx.RunScript(sb.String(), "send_xhr_event.js")
 	if err != nil {
-		return ToJsError(err)
+		err = ToJsError(err)
 	}
-	return nil
+
+	if err != nil {
+		tlog.Errorf("xhr %d-%d send %s %s, error: %v", evt.renderId, evt.XhrId, evt.Event, evt.Error, err)
+	} else {
+		tlog.Debugf("xhr %d-%d send %s %s ok", evt.renderId, evt.XhrId, evt.Event, evt.Error)
+	}
+	return err
 }

@@ -142,7 +142,7 @@ func performXhr(req *xhrCmd, client *http.Client, apiHosts []*ApiHost) {
 	}(time.Now(), renderId, req.reqUrl.String())
 
 	worker := req.worker
-	evt := xhrEvent{XhrId: req.XhrId}
+	evt := xhrEvent{XhrId: req.XhrId, renderId: renderId}
 
 	if req.aborted {
 		sendXhrFinishEvent(worker, &evt)
@@ -274,10 +274,7 @@ func sendXhrErrorEvent(w *Worker, evt *xhrEvent, err error) {
 }
 
 func sendXhrEvent(w *Worker, evt *xhrEvent) {
-	err := w.SendXhrEvent(evt)
-	if err != nil {
-		tlog.Error(err)
-	}
+	w.SendXhrEvent(evt)
 	evt.Reset()
 }
 
