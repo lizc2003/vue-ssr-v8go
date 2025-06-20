@@ -218,6 +218,7 @@ func (this *VmMgr) acquireWorker() *Worker {
 				errMsg := "too many failures acquiring v8 instance, exit!"
 				tlog.Error(errMsg)
 				alarm.SendAlert(errMsg)
+				time.Sleep(1 * time.Second)
 				os.Exit(1)
 			}
 			return nil
