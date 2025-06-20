@@ -7,6 +7,7 @@ export function createAxiosInstance(ssrCtx?: any) {
   };
   if (ssrCtx) {
     _headers["SSR-Headers"] = JSON.stringify(ssrCtx.ssrHeaders);
+    _headers["SSR-Render-ID"] = ssrCtx.renderId?.toString()
   }
 
   const instance = axios.create({

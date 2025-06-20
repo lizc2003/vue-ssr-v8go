@@ -127,13 +127,19 @@ func (this *XmlHttpRequestMgr) Abort(xhrId int) {
 }
 
 func performXhr(req *xhrCmd, client *http.Client, apiHosts []*ApiHost) {
-	defer func(t time.Time, u string) {
-		tlog.Infof("xhr %d: %s, total: %v, push: %v, queue: %v", req.XhrId, u,
+	renderId := int64(0)
+	if rId, ok := req.Headers["SSR-Render-ID"]; ok {
+		renderId, _ = strconv.ParseInt(rId, 10, 64)
+		delete(req.Headers, "SSR-Render-ID")
+	}
+
+	defer func(t time.Time, renderId int64, u string) {
+		tlog.Infof("xhr %d-%d: %s, total: %v, push: %v, queue: %v", renderId, req.XhrId, u,
 			time.Since(req.beginTime),
 			req.queueBeginTime.Sub(req.beginTime),
 			t.Sub(req.queueBeginTime),
 		)
-	}(time.Now(), req.reqUrl.String())
+	}(time.Now(), renderId, req.reqUrl.String())
 
 	worker := req.worker
 	evt := xhrEvent{XhrId: req.XhrId}
