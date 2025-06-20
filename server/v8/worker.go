@@ -255,9 +255,9 @@ func doSendXhrEvent(w *Worker, evt *xhrEvent) error {
 	}
 
 	if err != nil {
-		tlog.Errorf("xhr %d-%d send %s %s, error: %v", evt.renderId, evt.XhrId, evt.Event, evt.Error, err)
+		tlog.Errorf("xhr %d-%d send %s, error: %v", evt.renderId, evt.XhrId, evt.Event, err)
 	} else {
-		tlog.Debugf("xhr %d-%d send %s %s ok", evt.renderId, evt.XhrId, evt.Event, evt.Error)
+		tlog.Debugf("xhr %d-%d send %s ok", evt.renderId, evt.XhrId, evt.Event)
 	}
 	return err
 }
