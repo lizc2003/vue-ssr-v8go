@@ -8,7 +8,6 @@ import (
 	"github.com/lizc2003/vue-ssr-v8go/server/common/defs"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/tlog"
 	"math/rand"
-	"os"
 	"path"
 	"sync"
 	"sync/atomic"
@@ -213,14 +212,14 @@ func (this *VmMgr) acquireWorker() *Worker {
 		}
 
 		if time.Now().Unix()-reqStartTime > VmAcquireTimeout {
-			failCount := atomic.AddInt32(&this.vmAcquireFailCount, 1)
-			if failCount >= ProcessExitThreshold {
-				errMsg := "too many failures acquiring v8 instance, exit!"
-				tlog.Error(errMsg)
-				alarm.SendAlert(errMsg)
-				time.Sleep(1 * time.Second)
-				os.Exit(1)
-			}
+			//failCount := atomic.AddInt32(&this.vmAcquireFailCount, 1)
+			//if failCount >= ProcessExitThreshold {
+			//	errMsg := "too many failures acquiring v8 instance, exit!"
+			//	tlog.Error(errMsg)
+			//	alarm.SendAlert(errMsg)
+			//	time.Sleep(1 * time.Second)
+			//	os.Exit(1)
+			//}
 			return nil
 		}
 	}

@@ -1,20 +1,19 @@
 package logic
 
-import (
-	"encoding/json"
-	"github.com/lizc2003/vue-ssr-v8go/server/common/util"
-)
-
-func SendMessageCallback(mtype int64, param1 int64, param2 string) {
+func SendMessageCallback(mtype int64, param1 int64, param2 string, param3 string, param4 string, param5 string) {
 	switch mtype {
 	case 10:
-		bOK := false
-		var result RenderResult
-		err := json.Unmarshal(util.UnsafeStr2Bytes(param2), &result)
-		if err == nil {
-			bOK = true
-		} else {
-			result.Html = err.Error()
+		result := RenderResult{
+			Html:    param2,
+			Meta:    param3,
+			State:   param4,
+			Modules: param5,
+		}
+
+		bOK := true
+		if result.Html == "" {
+			bOK = false
+			result.Html = "no render result"
 		}
 		ThisServer.RenderMgr.SendResult(param1, bOK, result)
 	case 11:

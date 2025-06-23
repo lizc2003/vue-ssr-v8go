@@ -31,20 +31,23 @@ const renderJsContent = `
 (function() {
 	let ctx = $RENDER_CONTEXT;
 	v8goRenderToString(ctx).then((html) => {
-		const msg = {html: html};
+		let meta = '';
+		let state = '';
+		let modules = '';
 		if (typeof ctx.htmlMeta === 'string') {
-			msg.meta = ctx.htmlMeta;
-		}
-		if (typeof ctx.htmlModules === 'string') {
-			msg.modules = ctx.htmlModules;
+			meta = ctx.htmlMeta;
 		}
 		if (ctx.htmlState) {
-			msg.state = JSON.stringify(ctx.htmlState);
+			state = JSON.stringify(ctx.htmlState);
 		}
-		v8goGo.sendMessage(10, ctx.renderId, JSON.stringify(msg));
+		if (typeof ctx.htmlModules === 'string') {
+			modules = ctx.htmlModules;
+		}
+
+		v8goGo.sendMessage(10, ctx.renderId, html, meta, state, modules);
 		ctx = null;
 	}).catch((err) => {
-		v8goGo.sendMessage(11, ctx.renderId, err.stack);
+		v8goGo.sendMessage(11, ctx.renderId, err.stack, '', '', '');
 		ctx = null;
 	})
 })()

@@ -35,7 +35,7 @@ func (this *xhrEvent) Clone() *xhrEvent {
 	return &evt
 }
 
-type SendMessageCallback func(mtype int64, param1 int64, param2 string)
+type SendMessageCallback func(mtype int64, param1 int64, param2 string, param3 string, param4 string, param5 string)
 
 type Worker struct {
 	Id              int64
@@ -221,8 +221,13 @@ func setFunctionCallback(w *Worker) error {
 	sendMessage := v8go.NewFunctionTemplate(w.isolate, func(info *v8go.FunctionCallbackInfo) *v8go.Value {
 		if w.callback != nil {
 			args := info.Args()
-			if len(args) >= 3 {
-				w.callback(args[0].Integer(), args[1].Integer(), args[2].String())
+			if len(args) >= 6 {
+				w.callback(args[0].Integer(), args[1].Integer(),
+					args[2].String(),
+					args[3].String(),
+					args[4].String(),
+					args[5].String(),
+				)
 			}
 		}
 		info.Release()
