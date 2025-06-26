@@ -47,5 +47,9 @@ func CompileJsScript(code string, scriptName string) (*v8go.CompilerCachedData, 
 
 	v8ctx.Close()
 	iso.Dispose()
+
+	if err != nil {
+		err = ToJsError(err)
+	}
 	return ret, err
 }

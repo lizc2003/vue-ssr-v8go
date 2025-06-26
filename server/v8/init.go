@@ -53,16 +53,19 @@ func initVm(bDev bool, serverDir string, useStrict bool, heapSizeLimit int32) er
 
 	if serverDir != "" {
 		gServerFileName = serverDir + "/" + gServerJsName
+		content, err := os.ReadFile(gServerFileName)
+		if err != nil {
+			return err
+		}
+		serverJs := util.UnsafeBytes2Str(content)
+		serverJsCache, err := CompileJsScript(serverJs, gServerJsName)
+		if err != nil {
+			return err
+		}
+
 		if !bDev {
-			content, err := os.ReadFile(gServerFileName)
-			if err != nil {
-				return err
-			}
-			gServerJs = util.UnsafeBytes2Str(content)
-			gServerJsCache, err = CompileJsScript(gServerJs, gServerJsName)
-			if err != nil {
-				return err
-			}
+			gServerJs = serverJs
+			gServerJsCache = serverJsCache
 		}
 	}
 	return nil
