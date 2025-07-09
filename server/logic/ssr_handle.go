@@ -37,7 +37,11 @@ func HandleSsrRequest(writer http.ResponseWriter, request *http.Request) {
 
 	result, err := ssrRender(render, url, ssrHeaders)
 	statusCode, indexHtml, err := ThisServer.RenderMgr.IndexHtml.GetIndexHtml(result, err)
-	util.WriteHtmlResponse(writer, statusCode, indexHtml)
+	if err == ErrorPageRedirect {
+		http.Redirect(writer, request, indexHtml, statusCode)
+	} else {
+		util.WriteHtmlResponse(writer, statusCode, indexHtml)
+	}
 
 	elapse := time.Since(beginTime)
 	if err != nil {
@@ -45,6 +49,8 @@ func HandleSsrRequest(writer http.ResponseWriter, request *http.Request) {
 			tlog.Infof("request %d finish(%d): %s, elapse: %v, ssr off", render.renderId, render.workerId, url, elapse)
 		} else if err == ErrorPageNotFound {
 			tlog.Infof("request %d finish(%d): %s, elapse: %v, page not found", render.renderId, render.workerId, url, elapse)
+		} else if err == ErrorPageRedirect {
+			tlog.Infof("request %d finish(%d): %s, elapse: %v, page redirect %d %s", render.renderId, render.workerId, url, elapse, statusCode, indexHtml)
 		} else {
 			tlog.Errorf("request %d finish(%d): %s, elapse: %v, ssr error: %v", render.renderId, render.workerId, url, elapse, err)
 		}

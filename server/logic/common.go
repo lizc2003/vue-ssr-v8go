@@ -16,6 +16,7 @@ const (
 
 var (
 	ErrorPageNotFound  = errors.New("page not found")
+	ErrorPageRedirect  = errors.New("page redirect")
 	ErrorSsrOff        = errors.New("ssr off")
 	ErrorRenderTimeout = errors.New("render timeout")
 

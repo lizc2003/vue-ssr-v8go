@@ -68,8 +68,12 @@ func (this *IndexHtml) GetIndexHtml(result RenderResult, renderErr error) (int, 
 	err := renderErr
 	if err != nil {
 		errMsg := err.Error()
-		if strings.Contains(errMsg, "Error: 404") {
+		if strings.Contains(errMsg, "Error: 404 ") {
 			return http.StatusNotFound, this.notfoundHtml, ErrorPageNotFound
+		} else if idx := strings.Index(errMsg, "Error: 301 "); idx >= 0 {
+			return 301, getRedirectUrl(errMsg, idx), ErrorPageRedirect
+		} else if idx2 := strings.Index(errMsg, "Error: 302 "); idx2 >= 0 {
+			return 302, getRedirectUrl(errMsg, idx2), ErrorPageRedirect
 		} else if strings.Contains(errMsg, "Error: ssr-off") {
 			err = ErrorSsrOff
 		}
@@ -224,4 +228,14 @@ func renderPreloadLink(file string) string {
 
 func basename(str string) string {
 	return str[strings.LastIndex(str, "/")+1:]
+}
+
+func getRedirectUrl(s string, idx int) string {
+	url := s[idx+len("Error: 301 "):]
+	if url == "" {
+		url = "/"
+	} else {
+		url = strings.Split(url, "\n")[0]
+	}
+	return url
 }

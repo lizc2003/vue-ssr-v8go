@@ -12,7 +12,7 @@ declare function dumpObject(obj: any): string;
   await router.isReady();
 
   if (router.currentRoute.value.matched.length === 0) {
-    throw new Error("404");
+    throw new Error("404 NotFound");
   }
 
   if (router.currentRoute.value.meta?.ssrOff) {
