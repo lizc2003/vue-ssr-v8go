@@ -232,10 +232,9 @@ func basename(str string) string {
 
 func getRedirectUrl(s string, idx int) string {
 	url := s[idx+len("Error: 301 "):]
+	url = strings.TrimSpace(strings.Split(url, "\n")[0])
 	if url == "" {
 		url = "/"
-	} else {
-		url = strings.Split(url, "\n")[0]
 	}
 	return url
 }
