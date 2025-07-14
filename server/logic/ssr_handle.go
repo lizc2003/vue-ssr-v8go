@@ -3,6 +3,8 @@ package logic
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"github.com/lizc2003/vue-ssr-v8go/server/common/alarm"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/tlog"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/util"
 	"net/http"
@@ -52,7 +54,11 @@ func HandleSsrRequest(writer http.ResponseWriter, request *http.Request) {
 		} else if err == ErrorPageRedirect {
 			tlog.Infof("request %d finish(%d): %s, elapse: %v, page redirect %d %s", render.renderId, render.workerId, url, elapse, statusCode, indexHtml)
 		} else {
-			tlog.Errorf("request %d finish(%d): %s, elapse: %v, ssr error: %v", render.renderId, render.workerId, url, elapse, err)
+			errMsg := fmt.Sprintf("request %d finish(%d): %s, elapse: %v, ssr error: %v", render.renderId, render.workerId, url, elapse, err)
+			tlog.Error(errMsg)
+			if err == ErrorRenderTimeout {
+				alarm.SendAlert(errMsg)
+			}
 		}
 	} else {
 		tlog.Infof("request %d finish(%d): %s, elapse: %v", render.renderId, render.workerId, url, elapse)
