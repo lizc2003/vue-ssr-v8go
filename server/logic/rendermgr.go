@@ -46,9 +46,7 @@ func (this *RenderMgr) NewRender() *Render {
 
 func (this *RenderMgr) CloseRender(renderId int64) {
 	this.mutex.Lock()
-	if _, ok := this.renders[renderId]; ok {
-		delete(this.renders, renderId)
-	}
+	delete(this.renders, renderId)
 	this.mutex.Unlock()
 }
 
