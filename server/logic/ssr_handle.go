@@ -42,7 +42,7 @@ func HandleSsrRequest(writer http.ResponseWriter, request *http.Request) {
 	if err == ErrorPageRedirect {
 		http.Redirect(writer, request, indexHtml, statusCode)
 	} else {
-		util.WriteHtmlResponse(writer, statusCode, indexHtml)
+		util.WriteHtmlResponse(writer, statusCode, indexHtml, ThisServer.ContentSecurityPolicy)
 	}
 
 	elapse := time.Since(beginTime)

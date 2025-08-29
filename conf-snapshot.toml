@@ -2,6 +2,7 @@ server_host="0.0.0.0:9191"
 env = "dev"
 dist_dir = "dist"
 ssr_timeout = 15
+content_security_policy = "form-action 'self'; frame-ancestors 'self';"
 alarm_url = ""
 alarm_secret = ""
 

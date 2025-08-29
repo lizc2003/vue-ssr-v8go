@@ -14,22 +14,24 @@ import (
 )
 
 type Config struct {
-	Host        string       `toml:"server_host"`
-	Env         string       `toml:"env"`
-	AlarmUrl    string       `toml:"alarm_url"`
-	AlarmSecret string       `toml:"alarm_secret"`
-	DistDir     string       `toml:"dist_dir"`
-	SsrTimeout  int          `toml:"ssr_timeout"`
-	Log         tlog.Config  `toml:"Log"`
-	VmConfig    v8.VmConfig  `toml:"V8vm"`
-	ApiConfig   v8.ApiConfig `toml:"Api"`
-	Proxy       ProxyConfig  `toml:"Proxy"`
+	Host                  string       `toml:"server_host"`
+	Env                   string       `toml:"env"`
+	AlarmUrl              string       `toml:"alarm_url"`
+	AlarmSecret           string       `toml:"alarm_secret"`
+	DistDir               string       `toml:"dist_dir"`
+	ContentSecurityPolicy string       `toml:"content_security_policy"`
+	SsrTimeout            int          `toml:"ssr_timeout"`
+	Log                   tlog.Config  `toml:"Log"`
+	VmConfig              v8.VmConfig  `toml:"V8vm"`
+	ApiConfig             v8.ApiConfig `toml:"Api"`
+	Proxy                 ProxyConfig  `toml:"Proxy"`
 }
 
 type Server struct {
-	RenderMgr *RenderMgr
-	VmMgr     *v8.VmMgr
-	SsrTime   time.Duration
+	RenderMgr             *RenderMgr
+	VmMgr                 *v8.VmMgr
+	SsrTime               time.Duration
+	ContentSecurityPolicy string
 }
 
 var ThisServer *Server
@@ -78,9 +80,10 @@ func RunServer(c *Config) {
 	}
 
 	ThisServer = &Server{
-		RenderMgr: renderMgr,
-		VmMgr:     vmMgr,
-		SsrTime:   time.Duration(ssrTimeout) * time.Second,
+		RenderMgr:             renderMgr,
+		VmMgr:                 vmMgr,
+		SsrTime:               time.Duration(ssrTimeout) * time.Second,
+		ContentSecurityPolicy: c.ContentSecurityPolicy,
 	}
 
 	go runDumpSignalRoutine()
