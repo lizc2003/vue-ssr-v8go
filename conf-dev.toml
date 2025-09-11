@@ -23,11 +23,11 @@ instance_lifetime = 0
 xmlhttprequest_threads = 10
 
 [Api]
+location_origin = "https://ifconfig.me"
 hosts = ["ifconfig.me"]
 targets = ["https://ifconfig.me"]
 
 [Proxy]
 [[Proxy.location]]
-path = "/api/ifconfig"
+path = "/all.json"
 target = "https://ifconfig.me"
-rewrite = ["/api/ifconfig", ""]

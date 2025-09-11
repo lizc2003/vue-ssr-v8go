@@ -23,5 +23,6 @@ max_instances = 1
 xmlhttprequest_threads = 5
 
 [Api]
+location_origin = "https://ifconfig.me"
 hosts = ["ifconfig.me"]
 targets = ["https://ifconfig.me"]

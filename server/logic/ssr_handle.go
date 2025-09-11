@@ -70,12 +70,14 @@ func ssrRender(render *Render, url string, ssrHeaders map[string]string) (Render
 	urlJson, _ := json.Marshal(url)
 
 	var jsCode strings.Builder
-	jsCode.Grow(renderJsLength + len(ssrHeadersJson) + len(urlJson) + 64)
+	jsCode.Grow(renderJsLength + len(ssrHeadersJson) + len(urlJson) + 96)
 	jsCode.WriteString(renderJsPart1)
 	jsCode.WriteString(`{renderId:`)
 	jsCode.WriteString(strconv.FormatInt(render.renderId, 10))
 	jsCode.WriteString(`,url:`)
 	jsCode.Write(urlJson)
+	jsCode.WriteString(`,origin:`)
+	jsCode.WriteString(ThisServer.LocationOrigin)
 	jsCode.WriteString(`,ssrHeaders:`)
 	jsCode.Write(ssrHeadersJson)
 	jsCode.WriteString(`}`)

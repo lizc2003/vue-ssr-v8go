@@ -16,8 +16,9 @@ import (
 )
 
 type ApiConfig struct {
-	Hosts   []string `toml:"hosts"`
-	Targets []string `toml:"targets"`
+	LocationOrigin string   `toml:"location_origin"`
+	Hosts          []string `toml:"hosts"`
+	Targets        []string `toml:"targets"`
 }
 
 type ApiHost struct {
@@ -153,25 +154,25 @@ func performXhr(req *xhrCmd, client *http.Client, apiHosts []*ApiHost) {
 	sendXhrEvent(worker, &evt)
 
 	isApi := false
-	var reqHost string
+	var changeReqHost string
 	reqURL := req.reqUrl
 	for _, host := range apiHosts {
 		if reqURL.Host == host.Host {
 			isApi = true
-			reqHost = reqURL.Host
+			changeReqHost = reqURL.Host
 			reqURL.Scheme = host.TargetUrl.Scheme
 			reqURL.Host = host.TargetUrl.Host
 			break
 		}
 	}
-	requestUrl := reqURL.String()
+	realRequestUrl := reqURL.String()
 
 	var request *http.Request
 	var err error
 	if len(req.Post) == 0 {
-		request, err = http.NewRequest(req.Method, requestUrl, nil)
+		request, err = http.NewRequest(req.Method, realRequestUrl, nil)
 	} else {
-		request, err = http.NewRequest(req.Method, requestUrl, strings.NewReader(req.Post))
+		request, err = http.NewRequest(req.Method, realRequestUrl, strings.NewReader(req.Post))
 		if _, ok := req.Headers["Content-Type"]; !ok {
 			c := req.Post[0]
 			if c == '{' || c == '[' {
@@ -186,8 +187,8 @@ func performXhr(req *xhrCmd, client *http.Client, apiHosts []*ApiHost) {
 		return
 	}
 
-	if isApi {
-		request.Host = reqHost
+	if changeReqHost != "" {
+		request.Host = changeReqHost
 	}
 
 	for k, v := range req.Headers {
@@ -226,7 +227,7 @@ func performXhr(req *xhrCmd, client *http.Client, apiHosts []*ApiHost) {
 		return
 	}
 	if resp == nil {
-		err = fmt.Errorf("response is nil: %s", requestUrl)
+		err = fmt.Errorf("response is nil: %s", realRequestUrl)
 		sendXhrErrorEvent(worker, &evt, err)
 		return
 	}

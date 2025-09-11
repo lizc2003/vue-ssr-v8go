@@ -1,6 +1,7 @@
 package logic
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/alarm"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/tlog"
@@ -30,6 +31,7 @@ type Config struct {
 type Server struct {
 	RenderMgr             *RenderMgr
 	VmMgr                 *v8.VmMgr
+	LocationOrigin        string
 	SsrTime               time.Duration
 	ContentSecurityPolicy string
 }
@@ -39,6 +41,11 @@ var ThisServer *Server
 func RunServer(c *Config) {
 	if c.AlarmUrl != "" && c.AlarmSecret != "" {
 		alarm.NewDefaultRobot(c.AlarmUrl, c.AlarmSecret)
+	}
+
+	if c.ApiConfig.LocationOrigin == "" {
+		tlog.Fatal("api.location_origin is empty")
+		return
 	}
 
 	err := InitReverseProxy(c.Proxy.Locations)
@@ -79,9 +86,12 @@ func RunServer(c *Config) {
 		return
 	}
 
+	locationOriginJson, _ := json.Marshal(c.ApiConfig.LocationOrigin)
+
 	ThisServer = &Server{
 		RenderMgr:             renderMgr,
 		VmMgr:                 vmMgr,
+		LocationOrigin:        string(locationOriginJson),
 		SsrTime:               time.Duration(ssrTimeout) * time.Second,
 		ContentSecurityPolicy: c.ContentSecurityPolicy,
 	}

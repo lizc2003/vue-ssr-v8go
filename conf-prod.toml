@@ -23,5 +23,6 @@ max_instances = 10
 xmlhttprequest_threads = 50
 
 [Api]
+location_origin = "https://test.com"
 hosts = ["test.com"]
 targets = ["http://127.0.0.1:5500"]

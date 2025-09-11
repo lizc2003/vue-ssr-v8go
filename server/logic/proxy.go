@@ -2,6 +2,8 @@ package logic
 
 import (
 	"errors"
+	"net"
+	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"path"
@@ -67,6 +69,69 @@ func makeReverseProxy(target *url.URL, pattern, replaceVal string) *httputil.Rev
 			r.Out.URL.Host = target.Host
 			r.Out.URL.Path = path.Join(target.Path, inPath)
 			r.Out.Host = target.Host
+
+			if r.In.Host != "" {
+				host, _, err := net.SplitHostPort(r.In.Host)
+				if err == nil {
+					r.Out.Header.Set("X-Forwarded-Host", host)
+				}
+			}
+			proto := "http"
+			if r.In.TLS != nil {
+				proto = "https"
+			}
+			r.Out.Header.Set("X-Forwarded-Proto", proto)
+		},
+
+		ModifyResponse: func(resp *http.Response) error {
+			fwdHost := resp.Request.Header.Get("X-Forwarded-Host")
+			if fwdHost == "" {
+				return nil
+			}
+			proto := resp.Request.Header.Get("X-Forwarded-Proto")
+			isHttp := (proto == "http")
+
+			cookies := resp.Header.Values("Set-Cookie")
+			if len(cookies) == 0 {
+				return nil
+			}
+			newCookies := make([]string, 0, len(cookies))
+			for _, sc := range cookies {
+				parts := strings.Split(sc, ";")
+				replaced := false
+				sz := len(parts)
+				for i := 0; i < sz; i++ {
+					p := strings.ToLower(strings.TrimSpace(parts[i]))
+					if strings.HasPrefix(p, "domain=") {
+						parts[i] = "Domain=" + fwdHost
+						replaced = true
+					}
+					if isHttp {
+						if strings.HasPrefix(p, "secure") ||
+							strings.HasPrefix(p, "samesite=") {
+							parts[i] = ""
+						}
+					}
+				}
+				if replaced {
+					idx := 0
+					for i := 0; i < sz; i++ {
+						if parts[i] == "" {
+							continue
+						}
+						parts[idx] = strings.TrimSpace(parts[i])
+						idx++
+					}
+					newCookies = append(newCookies, strings.Join(parts[:idx], "; "))
+				} else {
+					newCookies = append(newCookies, sc)
+				}
+			}
+			resp.Header.Del("Set-Cookie")
+			for _, nc := range newCookies {
+				resp.Header.Add("Set-Cookie", nc)
+			}
+			return nil
 		},
 	}
 }

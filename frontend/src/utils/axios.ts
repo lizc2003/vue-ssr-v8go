@@ -5,14 +5,22 @@ export function createAxiosInstance(ssrCtx?: any) {
     "Content-Type": "application/json",
     Accept: "application/json",
   };
-  if (ssrCtx) {
-    _headers["SSR-Headers"] = JSON.stringify(ssrCtx.ssrHeaders);
-    _headers["SSR-Render-ID"] = ssrCtx.renderId?.toString()
+
+  let baseURL = ""
+  if (import.meta.env.SSR) {
+    if (ssrCtx) {
+      _headers["SSR-Headers"] = JSON.stringify(ssrCtx.ssrHeaders);
+      _headers["SSR-Render-ID"] = ssrCtx.renderId?.toString()
+      baseURL = ssrCtx.origin
+    }
+  } else {
+    baseURL = window.location.origin
   }
 
   const instance = axios.create({
     headers: _headers,
     timeout: 10000,
+    baseURL: baseURL,
   });
 
   instance.interceptors.request.use((config) => {
