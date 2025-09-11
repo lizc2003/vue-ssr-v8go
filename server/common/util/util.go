@@ -53,10 +53,11 @@ func GetClientIP(r *http.Request) string {
 	return ip
 }
 
-func WriteHtmlResponse(w http.ResponseWriter, status int, html string, csp string) {
-	if csp != "" {
-		w.Header().Set("Content-Security-Policy", csp)
+func WriteHtmlResponse(w http.ResponseWriter, status int, html string, headers map[string]string) {
+	for k, v := range headers {
+		w.Header().Set(k, v)
 	}
+
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(status)
 	w.Write(UnsafeStr2Bytes(html))

@@ -61,7 +61,7 @@ type VmMgr struct {
 
 var ThisVmMgr *VmMgr
 
-func NewVmMgr(env string, serverDir string, callback SendMessageCallback, vc *VmConfig, ac *ApiConfig) (*VmMgr, error) {
+func NewVmMgr(env string, serverDir string, callback SendMessageCallback, vc *VmConfig, originRewrite *OriginRewrite) (*VmMgr, error) {
 	bDev := false
 	if env == defs.EnvDev {
 		bDev = true
@@ -79,7 +79,7 @@ func NewVmMgr(env string, serverDir string, callback SendMessageCallback, vc *Vm
 	}
 	tlog.Infof("v8 version: %s, heap size limit: %dM", v8go.Version(), heapSizeLimit/1024/1024)
 
-	xhrMgr, err := NewXmlHttpRequestMgr(vc.XhrThreads, ac)
+	xhrMgr, err := NewXmlHttpRequestMgr(vc.XhrThreads, originRewrite)
 	if err != nil {
 		return nil, err
 	}

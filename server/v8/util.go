@@ -2,9 +2,11 @@ package v8
 
 import (
 	"errors"
+	"fmt"
 	"github.com/lizc2003/v8go"
 	"net"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -52,4 +54,13 @@ func CompileJsScript(code string, scriptName string) (*v8go.CompilerCachedData, 
 		err = ToJsError(err)
 	}
 	return ret, err
+}
+
+func ParseUrl(u string) (*url.URL, error) {
+	U, err := url.Parse(u)
+	if err != nil || (U.Scheme != "http" && U.Scheme != "https") {
+		err = fmt.Errorf("invalid url: %s", u)
+		return nil, err
+	}
+	return U, nil
 }

@@ -1,8 +1,5 @@
 server_host="0.0.0.0:9191"
 env = "prod"
-dist_dir = "dist"
-ssr_timeout = 15
-content_security_policy = "form-action 'self'; frame-ancestors 'self';"
 alarm_url = ""
 alarm_secret = ""
 
@@ -22,7 +19,9 @@ instance_lifetime = 3600
 max_instances = 10
 xmlhttprequest_threads = 50
 
-[Api]
-location_origin = "https://test.com"
-hosts = ["test.com"]
-targets = ["http://127.0.0.1:5500"]
+[SSR]
+dist_dir = "dist"
+timeout = 15
+response_headers = ["Content-Security-Policy: form-action 'self'; frame-ancestors 'self';"]
+origin = "https://test.com"
+origin_rewrite = "http://127.0.0.1:5500"

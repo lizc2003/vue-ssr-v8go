@@ -2,7 +2,6 @@ package v8
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/alarm"
 	"github.com/lizc2003/vue-ssr-v8go/server/common/tlog"
@@ -15,15 +14,9 @@ import (
 	"time"
 )
 
-type ApiConfig struct {
-	LocationOrigin string   `toml:"location_origin"`
-	Hosts          []string `toml:"hosts"`
-	Targets        []string `toml:"targets"`
-}
-
-type ApiHost struct {
-	Host      string
-	TargetUrl *url.URL
+type OriginRewrite struct {
+	OriginHost string
+	RewriteUrl *url.URL
 }
 
 type xhrCmd struct {
@@ -48,28 +41,7 @@ type XmlHttpRequestMgr struct {
 	maxId int
 }
 
-func NewXmlHttpRequestMgr(xhrThreads int32, c *ApiConfig) (*XmlHttpRequestMgr, error) {
-	if len(c.Hosts) != len(c.Targets) {
-		return nil, errors.New("hosts and targets count not match")
-	}
-
-	var apiHosts []*ApiHost
-	for i, host := range c.Hosts {
-		var targetUrl *url.URL
-		var err error
-		targetUrl, err = url.Parse(c.Targets[i])
-		if err != nil {
-			return nil, err
-		}
-		if targetUrl.Scheme != "http" && targetUrl.Scheme != "https" {
-			return nil, errors.New("target url scheme must be http or https")
-		}
-		apiHosts = append(apiHosts, &ApiHost{
-			Host:      host,
-			TargetUrl: targetUrl,
-		})
-	}
-
+func NewXmlHttpRequestMgr(xhrThreads int32, originRewrite *OriginRewrite) (*XmlHttpRequestMgr, error) {
 	if xhrThreads < MinXhrThreads {
 		xhrThreads = MinXhrThreads
 	} else if xhrThreads > MaxXhrThreads {
@@ -87,7 +59,7 @@ func NewXmlHttpRequestMgr(xhrThreads int32, c *ApiConfig) (*XmlHttpRequestMgr, e
 	for i := int32(0); i < xhrThreads; i++ {
 		go func() {
 			for req := range queue {
-				performXhr(req, httpClient, apiHosts)
+				performXhr(req, httpClient, originRewrite)
 
 				mgr.mutex.Lock()
 				delete(mgr.reqs, req.XhrId)
@@ -99,9 +71,9 @@ func NewXmlHttpRequestMgr(xhrThreads int32, c *ApiConfig) (*XmlHttpRequestMgr, e
 }
 
 func (this *XmlHttpRequestMgr) Open(req *xhrCmd) int {
-	reqUrl, err := url.Parse(req.XhrUrl)
-	if err != nil || (reqUrl.Scheme != "http" && reqUrl.Scheme != "https") {
-		tlog.Errorf("invalid xhr url: %s", req.XhrUrl)
+	reqUrl, err := ParseUrl(req.XhrUrl)
+	if err != nil {
+		tlog.Error(err)
 		return 0
 	}
 
@@ -127,7 +99,7 @@ func (this *XmlHttpRequestMgr) Abort(xhrId int) {
 	this.mutex.Unlock()
 }
 
-func performXhr(req *xhrCmd, client *http.Client, apiHosts []*ApiHost) {
+func performXhr(req *xhrCmd, client *http.Client, originRewrite *OriginRewrite) {
 	renderId := int64(0)
 	if rId, ok := req.Headers["SSR-Render-ID"]; ok {
 		renderId, _ = strconv.ParseInt(rId, 10, 64)
@@ -153,16 +125,13 @@ func performXhr(req *xhrCmd, client *http.Client, apiHosts []*ApiHost) {
 	evt.Event = "onstart"
 	sendXhrEvent(worker, &evt)
 
-	isApi := false
-	var changeReqHost string
+	isOrigin := false
 	reqURL := req.reqUrl
-	for _, host := range apiHosts {
-		if reqURL.Host == host.Host {
-			isApi = true
-			changeReqHost = reqURL.Host
-			reqURL.Scheme = host.TargetUrl.Scheme
-			reqURL.Host = host.TargetUrl.Host
-			break
+	if originRewrite != nil && reqURL.Host == originRewrite.OriginHost {
+		isOrigin = true
+		if originRewrite.RewriteUrl != nil {
+			reqURL.Scheme = originRewrite.RewriteUrl.Scheme
+			reqURL.Host = originRewrite.RewriteUrl.Host
 		}
 	}
 	realRequestUrl := reqURL.String()
@@ -187,8 +156,8 @@ func performXhr(req *xhrCmd, client *http.Client, apiHosts []*ApiHost) {
 		return
 	}
 
-	if changeReqHost != "" {
-		request.Host = changeReqHost
+	if isOrigin {
+		request.Host = originRewrite.OriginHost
 	}
 
 	for k, v := range req.Headers {
@@ -199,7 +168,7 @@ func performXhr(req *xhrCmd, client *http.Client, apiHosts []*ApiHost) {
 				if err == nil {
 					for kk, vv := range headers {
 						if vv != "" {
-							if kk == "Cookie" && !isApi {
+							if kk == "Cookie" && !isOrigin {
 								continue
 							}
 							tlog.Debugf("ssr header %s: %s", kk, vv)

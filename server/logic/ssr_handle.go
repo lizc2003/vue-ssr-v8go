@@ -42,7 +42,7 @@ func HandleSsrRequest(writer http.ResponseWriter, request *http.Request) {
 	if err == ErrorPageRedirect {
 		http.Redirect(writer, request, indexHtml, statusCode)
 	} else {
-		util.WriteHtmlResponse(writer, statusCode, indexHtml, ThisServer.ContentSecurityPolicy)
+		util.WriteHtmlResponse(writer, statusCode, indexHtml, ThisServer.ResponseHeaders)
 	}
 
 	elapse := time.Since(beginTime)
@@ -70,14 +70,14 @@ func ssrRender(render *Render, url string, ssrHeaders map[string]string) (Render
 	urlJson, _ := json.Marshal(url)
 
 	var jsCode strings.Builder
-	jsCode.Grow(renderJsLength + len(ssrHeadersJson) + len(urlJson) + 96)
+	jsCode.Grow(renderJsLength + len(ssrHeadersJson) + len(urlJson) + len(ThisServer.Origin) + 64)
 	jsCode.WriteString(renderJsPart1)
 	jsCode.WriteString(`{renderId:`)
 	jsCode.WriteString(strconv.FormatInt(render.renderId, 10))
 	jsCode.WriteString(`,url:`)
 	jsCode.Write(urlJson)
 	jsCode.WriteString(`,origin:`)
-	jsCode.WriteString(ThisServer.LocationOrigin)
+	jsCode.WriteString(ThisServer.Origin)
 	jsCode.WriteString(`,ssrHeaders:`)
 	jsCode.Write(ssrHeadersJson)
 	jsCode.WriteString(`}`)

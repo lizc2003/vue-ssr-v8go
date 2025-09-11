@@ -1,8 +1,5 @@
 server_host="0.0.0.0:9191"
 env = "dev"
-dist_dir = "dist"
-ssr_timeout = 15
-content_security_policy = "form-action 'self'; frame-ancestors 'self';"
 alarm_url = ""
 alarm_secret = ""
 
@@ -22,10 +19,11 @@ max_instances = 5
 instance_lifetime = 0
 xmlhttprequest_threads = 10
 
-[Api]
-location_origin = "https://ifconfig.me"
-hosts = ["ifconfig.me"]
-targets = ["https://ifconfig.me"]
+[SSR]
+dist_dir = "dist"
+timeout = 15
+response_headers = ["Content-Security-Policy: form-action 'self'; frame-ancestors 'self';"]
+origin = "https://ifconfig.me"
 
 [Proxy]
 [[Proxy.location]]
