@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"path"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -254,16 +254,26 @@ func (l *Logger) makeLog(w *bytes.Buffer, msg *Msg) []byte {
 }
 
 func (l *Logger) rmOldFiles() {
-	if out, err := exec.Command("ls", l.dir).Output(); err == nil {
-		files := bytes.Split(out, []byte("\n"))
-		totol, idx := len(files)-1, 0
-		for i := totol; i >= 0; i-- {
-			file := path.Join(l.dir, string(files[i]))
-			if strings.HasPrefix(file, l.fileName) && file != l.fileName {
-				idx++
-				if idx > l.fileNum {
-					os.Remove(file)
-				}
+	entries, err := os.ReadDir(l.dir)
+	if err != nil {
+		return
+	}
+	names := make([]string, 0, len(entries))
+	for _, e := range entries {
+		if e.IsDir() {
+			continue
+		}
+		names = append(names, e.Name())
+	}
+	sort.Strings(names)
+
+	idx := 0
+	for i := len(names) - 1; i >= 0; i-- {
+		file := path.Join(l.dir, names[i])
+		if strings.HasPrefix(file, l.fileName) && file != l.fileName {
+			idx++
+			if idx > l.fileNum {
+				_ = os.Remove(file)
 			}
 		}
 	}
