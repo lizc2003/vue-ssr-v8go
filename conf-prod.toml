@@ -22,6 +22,7 @@ xmlhttprequest_threads = 50
 [SSR]
 dist_dir = "dist"
 timeout = 15
-response_headers = ["Content-Security-Policy: form-action 'self'; frame-ancestors 'self';"]
+response_headers = ["Server: vue-ssr-v8go"]
+allow_iframe_paths = ["/embed/"]
 origin = "https://test.com"
 origin_rewrite = "http://127.0.0.1:5500"

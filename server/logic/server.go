@@ -27,19 +27,21 @@ type Config struct {
 }
 
 type SSRConfig struct {
-	DistDir         string   `toml:"dist_dir"`
-	Timeout         int      `toml:"timeout"`
-	ResponseHeaders []string `toml:"response_headers"`
-	Origin          string   `toml:"origin"`
-	OriginRewrite   string   `toml:"origin_rewrite"`
+	DistDir          string   `toml:"dist_dir"`
+	Timeout          int      `toml:"timeout"`
+	ResponseHeaders  []string `toml:"response_headers"`
+	AllowIframePaths []string `toml:"allow_iframe_paths"`
+	Origin           string   `toml:"origin"`
+	OriginRewrite    string   `toml:"origin_rewrite"`
 }
 
 type Server struct {
-	RenderMgr       *RenderMgr
-	VmMgr           *v8.VmMgr
-	Origin          string
-	SsrTime         time.Duration
-	ResponseHeaders map[string]string
+	RenderMgr        *RenderMgr
+	VmMgr            *v8.VmMgr
+	Origin           string
+	SsrTime          time.Duration
+	ResponseHeaders  map[string]string
+	AllowIframePaths []string
 }
 
 var ThisServer *Server
@@ -95,11 +97,12 @@ func RunServer(c *Config) {
 	originJson, _ := json.Marshal(c.SsrConfig.Origin)
 
 	ThisServer = &Server{
-		RenderMgr:       renderMgr,
-		VmMgr:           vmMgr,
-		Origin:          string(originJson),
-		SsrTime:         time.Duration(ssrTimeout) * time.Second,
-		ResponseHeaders: getResponseHeaders(c.SsrConfig.ResponseHeaders),
+		RenderMgr:        renderMgr,
+		VmMgr:            vmMgr,
+		Origin:           string(originJson),
+		SsrTime:          time.Duration(ssrTimeout) * time.Second,
+		ResponseHeaders:  toResponseHeaders(c.SsrConfig.ResponseHeaders),
+		AllowIframePaths: c.SsrConfig.AllowIframePaths,
 	}
 
 	go runDumpSignalRoutine()
@@ -121,7 +124,7 @@ func runDumpSignalRoutine() {
 	}
 }
 
-func getResponseHeaders(headers []string) map[string]string {
+func toResponseHeaders(headers []string) map[string]string {
 	headersMap := make(map[string]string)
 	for _, header := range headers {
 		headerParts := strings.SplitN(header, ":", 2)

@@ -22,7 +22,8 @@ xmlhttprequest_threads = 10
 [SSR]
 dist_dir = "dist"
 timeout = 15
-response_headers = ["Content-Security-Policy: form-action 'self'; frame-ancestors 'self';"]
+response_headers = ["Server: vue-ssr-v8go"]
+allow_iframe_paths = ["/embed/"]
 origin = "https://ifconfig.me"
 
 [Proxy]

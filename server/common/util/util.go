@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 	"unsafe"
@@ -58,9 +59,11 @@ func WriteHtmlResponse(w http.ResponseWriter, status int, html string, headers m
 		w.Header().Set(k, v)
 	}
 
+	bodyBytes := UnsafeStr2Bytes(html)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Content-Length", strconv.Itoa(len(bodyBytes)))
 	w.WriteHeader(status)
-	w.Write(UnsafeStr2Bytes(html))
+	w.Write(bodyBytes)
 }
 
 func UnsafeStr2Bytes(s string) []byte {

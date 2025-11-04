@@ -2,8 +2,10 @@ package logic
 
 import (
 	"errors"
+	"maps"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 const (
@@ -44,4 +46,20 @@ func getDistPath(distDir string) (string, error) {
 	}
 
 	return distDir, nil
+}
+
+func getResponseHeaders(url string) map[string]string {
+	headers := ThisServer.ResponseHeaders
+	bAllow := false
+	for _, p := range ThisServer.AllowIframePaths {
+		if strings.HasPrefix(url, p) {
+			bAllow = true
+			break
+		}
+	}
+	if !bAllow {
+		headers = maps.Clone(headers)
+		headers["Content-Security-Policy"] = "form-action 'self'; frame-ancestors 'self';"
+	}
+	return headers
 }
