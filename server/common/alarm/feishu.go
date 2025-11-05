@@ -20,8 +20,8 @@ import (
 
 var gFeishuRobot *RobotFeiShu
 
-func NewDefaultRobot(url, secret string) {
-	gFeishuRobot = NewRobotFeiShu(defs.EnvProd, defs.App, url, secret, "", "")
+func NewDefaultRobot(env, url, secret string) {
+	gFeishuRobot = NewRobotFeiShu(env, defs.App, url, secret, "", "")
 }
 
 func SendAlert(msg string) {

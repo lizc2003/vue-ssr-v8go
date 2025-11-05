@@ -56,9 +56,9 @@ func HandleSsrRequest(writer http.ResponseWriter, request *http.Request) {
 		} else {
 			errMsg := fmt.Sprintf("request %d finish(%d): %s, elapse: %v, ssr error: %v", render.renderId, render.workerId, url, elapse, err)
 			tlog.Error(errMsg)
-			if err == ErrorRenderTimeout {
-				alarm.SendAlert(errMsg)
-			}
+			//if err == ErrorRenderTimeout {
+			alarm.SendAlert(errMsg)
+			//}
 		}
 	} else {
 		tlog.Infof("request %d finish(%d): %s, elapse: %v", render.renderId, render.workerId, url, elapse)

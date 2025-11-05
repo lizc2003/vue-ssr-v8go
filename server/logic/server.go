@@ -48,7 +48,7 @@ var ThisServer *Server
 
 func RunServer(c *Config) {
 	if c.AlarmUrl != "" && c.AlarmSecret != "" {
-		alarm.NewDefaultRobot(c.AlarmUrl, c.AlarmSecret)
+		alarm.NewDefaultRobot(c.Env, c.AlarmUrl, c.AlarmSecret)
 	}
 
 	err := InitReverseProxy(c.Proxy.Locations)
