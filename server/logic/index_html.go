@@ -211,16 +211,16 @@ func renderPreloadLink(file string) string {
 		return fmt.Sprintf(`<link rel="modulepreload" crossorigin href="%s">`, file)
 	case "css":
 		return fmt.Sprintf(`<link rel="stylesheet" href="%s">`, file)
-	case "woff":
-		return fmt.Sprintf(`<link rel="preload" href="%s" as="font" type="font/woff" crossorigin>`, file)
-	case "woff2":
-		return fmt.Sprintf(`<link rel="preload" href="%s" as="font" type="font/woff2" crossorigin>`, file)
-	case "gif":
-		return fmt.Sprintf(`<link rel="preload" href="%s" as="image" type="image/gif">`, file)
-	case "jpg", "jpeg":
-		return fmt.Sprintf(`<link rel="preload" href="%s" as="image" type="image/jpeg">`, file)
-	case "png":
-		return fmt.Sprintf(`<link rel="preload" href="%s" as="image" type="image/png">`, file)
+	// case "woff":
+	// 	return fmt.Sprintf(`<link rel="preload" href="%s" as="font" type="font/woff" crossorigin>`, file)
+	// case "woff2":
+	// 	return fmt.Sprintf(`<link rel="preload" href="%s" as="font" type="font/woff2" crossorigin>`, file)
+	// case "gif":
+	// 	return fmt.Sprintf(`<link rel="preload" href="%s" as="image" type="image/gif">`, file)
+	// case "jpg", "jpeg":
+	// 	return fmt.Sprintf(`<link rel="preload" href="%s" as="image" type="image/jpeg">`, file)
+	// case "png":
+	// 	return fmt.Sprintf(`<link rel="preload" href="%s" as="image" type="image/png">`, file)
 	default:
 		return ""
 	}
