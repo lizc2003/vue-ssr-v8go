@@ -31,7 +31,7 @@ type SSRConfig struct {
 	Timeout                     int      `toml:"timeout"`
 	ResponseHeaders             []string `toml:"response_headers"`
 	AllowIframePaths            []string `toml:"allow_iframe_paths"`
-	AllowSharedArrayBufferPaths []string `toml:"allow_sharedarraybuffer_paths"`
+	AllowSharedArrayBufferPaths []string `toml:"allow_shared_array_buffer_paths"`
 	Origin                      string   `toml:"origin"`
 	OriginRewrite               string   `toml:"origin_rewrite"`
 }
