@@ -50,16 +50,33 @@ func getDistPath(distDir string) (string, error) {
 
 func getResponseHeaders(url string) map[string]string {
 	headers := ThisServer.ResponseHeaders
-	bAllow := false
+
+	bAllowIframe := false
+	bAllowSharedArray := false
 	for _, p := range ThisServer.AllowIframePaths {
 		if strings.HasPrefix(url, p) {
-			bAllow = true
+			bAllowIframe = true
 			break
 		}
 	}
-	if !bAllow {
+	for _, p := range ThisServer.AllowSharedArrayBufferPaths {
+		if strings.HasPrefix(url, p) {
+			bAllowSharedArray = true
+			break
+		}
+	}
+
+	if !bAllowIframe || bAllowSharedArray {
 		headers = maps.Clone(headers)
+	}
+
+	if !bAllowIframe {
 		headers["Content-Security-Policy"] = "form-action 'self'; frame-ancestors 'self';"
+	}
+
+	if bAllowSharedArray {
+		headers["Cross-Origin-Opener-Policy"] = "same-origin"
+		headers["Cross-Origin-Embedder-Policy"] = "credentialless"
 	}
 	return headers
 }
