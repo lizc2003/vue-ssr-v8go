@@ -51,7 +51,7 @@ func InitReverseProxy(locs []ProxyLocation) error {
 
 func GetReverseProxy(urlPath string) *httputil.ReverseProxy {
 	for _, proxy := range gReverseProxies {
-		if strings.HasPrefix(urlPath, proxy.path) {
+		if MatchPath(urlPath, proxy.path) {
 			return proxy.proxy
 		}
 	}
