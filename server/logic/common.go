@@ -210,6 +210,7 @@ func TestTheMatchPath() {
 		{"/src", "/src/main.go", true},
 		{"/srx", "/src/main.go", false},
 		{"/src/*.go", "/src/main.go", true},
+		{"/*/src", "/src", false},
 		{"src/*.go", "lib/main.go", false},
 		{"/*/test", "/lib/testX", true},
 
