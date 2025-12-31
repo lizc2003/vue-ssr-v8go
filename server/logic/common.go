@@ -91,7 +91,7 @@ func MatchPath(path, pattern string) bool {
 	if pattern == "" {
 		return true
 	}
-	if pattern == "*" && path == "/" {
+	if pattern == "*" && strings.Contains(path, "/") {
 		return false
 	}
 
@@ -191,7 +191,7 @@ func mergeDoubleStars(pattern string) string {
 	return result.String()
 }
 
-func TestMatchPath() {
+func TestTheMatchPath() {
 	testCases := []struct {
 		pattern string
 		path    string
